@@ -1,0 +1,23 @@
+---
+import { site } from '../data/site';
+
+interface Props {
+  command?: string;
+}
+
+const { command } = Astro.props;
+// Windows-style path, e.g. C:\Users\jam\portfolio (backslashes are escaped in the template string).
+const path = `C:\\Users\\${site.nickname.toLowerCase()}\\portfolio`;
+---
+
+<!--
+  A Windows command prompt such as "C:\Users\jam\portfolio> type summary.md". Pure decoration, so it
+  is hidden from assistive technology. It is a flex row on purpose: whitespace between flex items is
+  ignored, so code formatters can break the spans across lines without inserting visible spaces.
+-->
+<p aria-hidden="true" data-terminal-prompt class="flex flex-wrap items-baseline select-none">
+  <span class="text-cyan-400">{path}</span>
+  <span class="text-slate-400">&gt;</span>
+  {command && <span class="ml-2">{command}</span>}
+  <slot />
+</p>

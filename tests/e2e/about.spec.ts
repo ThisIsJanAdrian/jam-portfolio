@@ -8,7 +8,7 @@ test.beforeEach(async ({ page }) => {
 
 test('shows every experience entry', async ({ page }) => {
   for (const job of experience) {
-    await expect(page.getByRole('heading', { level: 4, name: job.role })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 3, name: job.role })).toBeVisible();
     await expect(page.getByText(job.company, { exact: true }).first()).toBeVisible();
   }
 });

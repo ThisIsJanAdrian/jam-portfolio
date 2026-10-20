@@ -3,7 +3,7 @@ import { site } from '../../src/data/site';
 import { settle } from './helpers';
 
 const sections = [
-  ['About', 'about'],
+  ['Experience', 'experience'],
   ['Projects', 'projects'],
   ['Background', 'background'],
   ['Contact', 'contact'],
@@ -204,4 +204,28 @@ test('no broken internal links', async ({ page, request }) => {
   // Every in-page anchor must also have a matching target on the home page.
   await page.goto('/');
   for (const [, id] of sections) await expect(page.locator(`#${id}`)).toHaveCount(1);
+});
+
+// Regression: on a tall screen, a short section scrolled to the top leaves the middle of the screen
+// inside the NEXT section. The highlight must still stay on the link that was clicked.
+test.describe('tall screens', () => {
+  test.use({ viewport: { width: 1440, height: 1000 } });
+
+  test('the highlight stays on the clicked link even when the next section is mid-screen', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    const nav = page.getByRole('navigation', { name: 'Main' });
+    for (const [name] of sections) {
+      const link = nav.getByRole('link', { name, exact: true });
+      await link.click();
+      await settle(page);
+      await page.waitForTimeout(400); // longer than the "arrival" check, so any late flip shows up
+      await expect(link, `${name} should stay highlighted`).toHaveAttribute(
+        'aria-current',
+        'location',
+      );
+      await expect(nav.locator('[aria-current]')).toHaveCount(1);
+    }
+  });
 });
