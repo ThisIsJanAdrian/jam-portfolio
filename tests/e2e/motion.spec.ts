@@ -34,7 +34,7 @@ test.describe('default motion', () => {
 
     await page
       .getByRole('navigation', { name: 'Main' })
-      .getByRole('link', { name: 'About', exact: true })
+      .getByRole('link', { name: 'Projects', exact: true })
       .click();
 
     // A real slide animates `transform`; a fade would only animate `opacity`.

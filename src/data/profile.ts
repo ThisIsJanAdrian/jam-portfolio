@@ -1,5 +1,5 @@
 /**
- * Structured profile data for the About page: experience, education, credentials, awards, skills.
+ * Structured profile data for the hero terminal and Background section: experience, education, credentials, awards, skills.
  * Short identity strings (name, role, links) live in `site.ts`.
  *
  * Dates are `YYYY-MM` strings. Use `end: null` for "present".
@@ -86,7 +86,7 @@ export const leadership: string[] = [
   'Committee Member, EECE School Student Council: coordinated logistics for programs serving the School of EECE student body',
 ];
 
-/** Short bio shown at the top of About. Skills, awards and leadership have their own sections. */
+/** Short bio shown in the hero terminal. Skills, awards and leadership have their own sections. */
 export const bio = {
   intro:
     'I am a computer engineer focusing on software quality and artificial intelligence. My technical foundation is built on Natural Language Processing (NLP) systems, Retrieval-Augmented Generation (RAG) pipelines, software testing architectures, and a whole lot of prayers.',

@@ -37,10 +37,19 @@ export async function revealAll(page: Page) {
   }
 }
 
-/** Waits for scrolling and all CSS transitions to finish, so layout and colours are final. */
+/**
+ * Waits for scrolling and all finite CSS transitions/animations to finish, so layout and colours
+ * are final. Infinite animations (like the terminal's blinking cursor) never finish, so they are
+ * skipped; waiting on them would hang forever.
+ */
 export async function settle(page: Page) {
   await waitForScrollEnd(page);
   await page.evaluate(() =>
-    Promise.all(document.getAnimations().map((a) => a.finished.catch(() => undefined))),
+    Promise.all(
+      document
+        .getAnimations()
+        .filter((a) => a.effect?.getComputedTiming().endTime !== Infinity)
+        .map((a) => a.finished.catch(() => undefined)),
+    ),
   );
 }

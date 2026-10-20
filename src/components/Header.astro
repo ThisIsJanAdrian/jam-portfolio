@@ -5,7 +5,7 @@ import { site } from '../data/site';
 // absolute so they also work from case-study pages; "/#" scrolls to the top without a reload.
 const links = [
   { href: '/#', section: 'hero', label: site.nickname },
-  { href: '/#about', section: 'about', label: 'About' },
+  { href: '/#experience', section: 'experience', label: 'Experience' },
   { href: '/#projects', section: 'projects', label: 'Projects' },
   { href: '/#background', section: 'background', label: 'Background' },
   { href: '/#contact', section: 'contact', label: 'Contact' },
@@ -15,7 +15,7 @@ const links = [
 // [data-nav-indicator] element, so it can glide from one link to another instead of fading.
 // Tighter padding below `sm` keeps all five links inside the pill on a 360px phone.
 const linkClass =
-  'relative z-10 block rounded-full px-1.5 py-1.5 text-xs font-medium transition-colors duration-300 motion-reduce:transition-none sm:px-3 sm:text-sm [&:not([aria-current])]:hover:bg-[var(--color-surface)] aria-[current=location]:text-[var(--color-accent-contrast)]';
+  'relative z-10 block rounded-full px-1 py-1.5 text-xs font-medium transition-colors duration-300 motion-reduce:transition-none sm:px-3 sm:text-sm [&:not([aria-current])]:hover:bg-[var(--color-surface)] aria-[current=location]:text-[var(--color-accent-contrast)]';
 ---
 
 <!--
@@ -26,7 +26,7 @@ const linkClass =
 <header class="pointer-events-none fixed inset-x-0 top-4 z-50 flex justify-center px-4">
   <nav
     aria-label="Main"
-    class="pointer-events-auto flex max-w-full items-center overflow-hidden rounded-full border border-[var(--color-border)] bg-[color-mix(in_srgb,var(--color-bg)_82%,transparent)] px-1.5 py-1.5 sm:px-2 shadow-lg backdrop-blur-md"
+    class="pointer-events-auto flex max-w-full items-center overflow-hidden rounded-full border border-[var(--color-border)] bg-[color-mix(in_srgb,var(--color-bg)_82%,transparent)] px-1 py-1.5 sm:px-2 shadow-lg backdrop-blur-md"
   >
     <div class="relative">
       <span
@@ -136,10 +136,22 @@ const linkClass =
       return null;
     };
 
+    // The section the last nav click was heading to (null when the user is just scrolling).
+    let target: string | null = null;
+
     const arrive = () => {
       travelling = false;
-      const id = sectionAtMiddle();
-      if (id) setActive(id); // re-sync in case the user scrolled somewhere else meanwhile
+      const destination = target ? document.getElementById(target) : null;
+      target = null;
+      // Keep the clicked link while its section is still on screen in the upper half. Short
+      // sections (like a single job) leave the middle of a tall screen inside the NEXT section, so
+      // trusting the middle alone would flip the highlight away from the link that was clicked.
+      if (destination) {
+        const r = destination.getBoundingClientRect();
+        if (r.top < window.innerHeight * 0.5 && r.bottom > 0) return;
+      }
+      const id = sectionAtMiddle(); // the user scrolled somewhere else meanwhile
+      if (id) setActive(id);
     };
 
     const waitForArrival = () => {
@@ -161,6 +173,7 @@ const linkClass =
           return; // let "open in new tab" and friends behave normally
         }
         travelling = true;
+        target = link.dataset.section ?? null;
         setActive(link.dataset.section!);
         waitForArrival(); // covers the case where the page does not need to scroll at all
       }),

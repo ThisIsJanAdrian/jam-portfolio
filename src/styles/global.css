@@ -132,3 +132,16 @@
     transform: none !important;
   }
 }
+
+/* Blinking cursor in the hero terminal. Static (always visible) for reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .terminal-cursor {
+    animation: terminal-blink 1.1s steps(1) infinite;
+  }
+}
+
+@keyframes terminal-blink {
+  50% {
+    visibility: hidden;
+  }
+}

@@ -1,23 +1,13 @@
 ---
-import { bio, experience, formatPeriod } from '../../data/profile';
+import { experience, formatPeriod } from '../../data/profile';
 ---
 
 <!-- Editorial section: a narrow column for comfortable reading, inside the wide page shell. -->
-<section id="about" data-spy aria-labelledby="about-title" class="px-6 py-24">
+<section id="experience" data-spy aria-labelledby="experience-title" class="px-6 py-24">
   <div class="mx-auto max-w-2xl">
-    <h2 id="about-title" data-reveal class="text-h2">
-      About
-    </h2>
-    <p data-reveal class="mt-6 text-lg leading-relaxed">
-      {bio.intro}
-    </p>
-    <p data-reveal class="mt-4 text-lg leading-relaxed">
-      {bio.closing}
-    </p>
-
-    <h3 data-reveal class="mt-16 text-2xl font-semibold">
+    <h2 id="experience-title" data-reveal class="text-h2">
       Experience
-    </h3>
+    </h2>
     <ol class="mt-8 space-y-10 border-l border-[var(--color-border)] pl-6">
       {experience.map((job) => (
         <li data-reveal class="relative">
@@ -25,7 +15,7 @@ import { bio, experience, formatPeriod } from '../../data/profile';
             aria-hidden="true"
             class="absolute top-2 -left-[1.85rem] size-2.5 rounded-full bg-[var(--color-accent)]"
           />
-          <h4 class="text-lg font-semibold">{job.role}</h4>
+          <h3 class="text-lg font-semibold">{job.role}</h3>
           <p>{job.company}</p>
           <p class="metric-badge text-[var(--color-muted)]">{formatPeriod(job.start, job.end)}</p>
           {job.highlights && job.highlights.length > 0 && (

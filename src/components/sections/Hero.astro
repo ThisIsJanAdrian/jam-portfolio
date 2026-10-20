@@ -1,5 +1,6 @@
 ---
 import { Image } from 'astro:assets';
+import Terminal from '../Terminal.astro';
 import { site } from '../../data/site';
 // Imported from src/assets so Astro resizes and converts it at build time (an 800px, 690 KB PNG
 // becomes a small WebP at the sizes actually displayed).
@@ -11,15 +12,25 @@ import headshot from '../../assets/jam_headshot.png';
     aria-hidden="true"
     class="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_55%_at_75%_25%,color-mix(in_srgb,var(--color-accent)_16%,transparent),transparent)]"
   ></div>
-  <div class="relative mx-auto grid min-h-[92vh] max-w-6xl items-center gap-12 px-6 pt-28 pb-16 md:grid-cols-[1.5fr_1fr]">
+  <div class="relative mx-auto grid min-h-[92vh] max-w-6xl items-center gap-12 px-6 pt-28 pb-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
     <div>
-      <p
-        data-reveal
-        class="text-sm font-semibold tracking-widest text-[var(--color-accent)] uppercase"
-      >
-        {site.role}
-      </p>
-      <h1 data-reveal style="--reveal-delay: 80ms" class="mt-4 text-hero">
+      <div data-reveal class="flex items-center gap-4">
+        <!-- Eager + high priority: this is the largest image above the fold. -->
+        <Image
+          src={headshot}
+          alt={`Portrait of ${site.name}`}
+          width={80}
+          height={80}
+          densities={[1, 2]}
+          loading="eager"
+          fetchpriority="high"
+          class="size-16 rounded-full border border-[var(--color-border)] object-cover shadow-lg sm:size-20"
+        />
+        <p class="text-sm font-semibold tracking-widest text-[var(--color-accent)] uppercase">
+          {site.role}
+        </p>
+      </div>
+      <h1 data-reveal style="--reveal-delay: 80ms" class="mt-6 text-hero">
         Hi, I'm {site.nickname}.
       </h1>
       <p
@@ -44,18 +55,9 @@ import headshot from '../../assets/jam_headshot.png';
         </a>
       </p>
     </div>
-    <div data-reveal style="--reveal-delay: 200ms" class="justify-self-center">
-      <!-- Eager + high priority: this is the largest element above the fold. -->
-      <Image
-        src={headshot}
-        alt={`Portrait of ${site.name}`}
-        width={288}
-        height={288}
-        densities={[1, 2]}
-        loading="eager"
-        fetchpriority="high"
-        class="size-56 rounded-full border border-[var(--color-border)] object-cover shadow-xl sm:size-72"
-      />
+
+    <div data-reveal style="--reveal-delay: 200ms">
+      <Terminal />
     </div>
   </div>
 </section>
