@@ -1,0 +1,23 @@
+# build output
+dist/
+.astro/
+
+# dependencies
+node_modules/
+
+# logs
+npm-debug.log*
+
+# environment variables
+.env
+.env.*
+!.env.example
+
+# test output
+playwright-report/
+test-results/
+.lighthouseci/
+
+# OS / editor
+.DS_Store
+Thumbs.db

@@ -1,0 +1,35 @@
+---
+const links = [
+  { href: '/', label: 'Home' },
+  { href: '/about', label: 'About' },
+  { href: '/projects', label: 'Projects' },
+  { href: '/contact', label: 'Contact' },
+];
+const path = Astro.url.pathname;
+---
+
+<header class="border-b border-[var(--color-border)]">
+  <nav
+    aria-label="Main"
+    class="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-2 px-4 py-4"
+  >
+    <a href="/" class="font-semibold">
+      Your Name · QA Analyst
+    </a>
+    <ul class="flex gap-4">
+      {links.map((l) => (
+        <li>
+          <a
+            href={l.href}
+            class="underline-offset-4 hover:underline"
+            aria-current={
+              path === l.href || (l.href !== '/' && path.startsWith(l.href)) ? 'page' : undefined
+            }
+          >
+            {l.label}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+</header>

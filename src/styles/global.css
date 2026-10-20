@@ -1,0 +1,41 @@
+@import 'tailwindcss';
+
+/*
+ * Design tokens. Restyle the whole site by changing these values.
+ * Contrast pairs below are chosen to pass WCAG AA (4.5:1) for body text.
+ */
+@theme {
+  --color-bg: #ffffff;
+  --color-surface: #f4f5f7;
+  --color-text: #1a1d23;
+  --color-muted: #4b5563;
+  --color-border: #d9dce1;
+  --color-accent: #1d4ed8;
+  --color-accent-contrast: #ffffff;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Dark mode follows the OS setting. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #0f1115;
+    --color-surface: #181b21;
+    --color-text: #e8eaed;
+    --color-muted: #a3a9b3;
+    --color-border: #2d323b;
+    --color-accent: #7aa2ff;
+    --color-accent-contrast: #0f1115;
+  }
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
+
+/* Visible keyboard focus: an accessibility requirement (WCAG 2.4.7). */
+:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
+}

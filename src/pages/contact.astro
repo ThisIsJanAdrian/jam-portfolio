@@ -1,0 +1,11 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ContactForm from '../components/ContactForm';
+---
+
+<Layout title="Contact | Your Name" description="Get in touch about QA roles or projects.">
+  <h1 class="text-3xl font-bold">Contact</h1>
+  <p class="mt-2 mb-6 text-[var(--color-muted)]">Send a message and I'll get back to you.</p>
+  <!-- client:load: the form needs JS to validate. Every other page ships zero JS. -->
+  <ContactForm client:load />
+</Layout>
