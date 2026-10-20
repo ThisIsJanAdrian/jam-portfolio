@@ -1,9 +1,11 @@
 import { expect, test } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/contact');
-  // The form is a hydrated React island; wait until it is interactive.
-  await expect(page.getByRole('button', { name: /send message/i })).toBeEnabled();
+  await page.goto('/');
+  // The form is a React island. Input typed into the server-rendered HTML before React hydrates is
+  // discarded, so wait for the component's own "hydrated" signal (Astro's `ssr` attribute is
+  // removed too early to be reliable).
+  await expect(page.locator('form[data-hydrated="true"]')).toBeVisible();
 });
 
 test('empty submit shows an error for each field', async ({ page }) => {

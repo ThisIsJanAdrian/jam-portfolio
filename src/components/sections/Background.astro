@@ -1,0 +1,86 @@
+---
+import {
+  awards,
+  credentials,
+  education,
+  formatMonth,
+  formatPeriod,
+  leadership,
+  skills,
+} from '../../data/profile';
+
+const card = 'rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg)] p-6';
+const h3 = 'text-xl font-semibold';
+---
+
+<section
+  id="background"
+  data-spy
+  aria-labelledby="background-title"
+  class="bg-[var(--color-surface)] px-6 py-24"
+>
+  <div class="mx-auto max-w-6xl">
+    <h2 id="background-title" data-reveal class="text-3xl font-bold tracking-tight">
+      Background
+    </h2>
+    <div class="reveal-stagger mt-10 grid gap-6 md:grid-cols-2">
+      <div data-reveal class={card}>
+        <h3 class={h3}>Education</h3>
+        <ul class="mt-4 space-y-4">
+          {education.map((e) => (
+            <li>
+              <h4 class="font-semibold">{e.degree}</h4>
+              <p>
+                {e.school}, {e.location}
+              </p>
+              <p class="text-sm text-[var(--color-muted)]">{formatPeriod(e.start, e.end)}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div data-reveal class={card}>
+        <h3 class={h3}>Licenses &amp; certifications</h3>
+        <ul class="mt-4 space-y-4">
+          {credentials.map((c) => (
+            <li>
+              <h4 class="font-semibold">{c.name}</h4>
+              <p>{c.issuer}</p>
+              <p class="text-sm text-[var(--color-muted)]">Issued {formatMonth(c.issued)}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div data-reveal class={card}>
+        <h3 class={h3}>Awards &amp; scholarships</h3>
+        <ul class="mt-4 list-disc space-y-2 pl-5">
+          {awards.map((a) => (
+            <li>{a}</li>
+          ))}
+        </ul>
+      </div>
+
+      <div data-reveal class={card}>
+        <h3 class={h3}>Leadership</h3>
+        <ul class="mt-4 list-disc space-y-2 pl-5">
+          {leadership.map((l) => (
+            <li>{l}</li>
+          ))}
+        </ul>
+      </div>
+
+      <div data-reveal class={`${card} md:col-span-2`}>
+        <h3 class={h3}>Skills</h3>
+        <dl class="mt-4 grid gap-4 sm:grid-cols-3">
+          {skills.map((group) => (
+            <div>
+              <dt class="font-semibold">{group.label}</dt>
+              <dd class="mt-1 text-[var(--color-muted)]">{group.items.join(' · ')}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </div>
+  </div>
+</section>

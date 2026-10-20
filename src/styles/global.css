@@ -28,6 +28,53 @@
   }
 }
 
+html {
+  /* Keeps anchored section headings clear of the floating nav. */
+  scroll-padding-top: 6rem;
+}
+
+/*
+ * Motion is opt-out: everything below only applies when the user has NOT asked for reduced motion
+ * (WCAG 2.3.3). With "reduce" set, content is simply visible and scrolling is instant.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /*
+   * Scroll reveal. Elements marked [data-reveal] fade and rise into place when they enter the
+   * viewport. The hidden state needs the `js` class (set by the inline script in Layout.astro),
+   * so without JavaScript nothing is ever hidden.
+   */
+  .js [data-reveal] {
+    transition-property: opacity, transform, box-shadow;
+    transition-duration: 0.7s, 0.7s, 0.2s;
+    transition-timing-function:
+      cubic-bezier(0.2, 0.7, 0.2, 1), cubic-bezier(0.2, 0.7, 0.2, 1), ease;
+    /* The stagger delay applies to the reveal only, not to later hover effects. */
+    transition-delay: var(--reveal-delay, 0ms), var(--reveal-delay, 0ms), 0s;
+  }
+
+  .js [data-reveal]:not(.is-revealed) {
+    opacity: 0;
+    transform: translateY(1.5rem);
+  }
+}
+
+/* Cards in a grid reveal in a gentle two-step cascade. */
+.reveal-stagger > [data-reveal]:nth-child(even) {
+  --reveal-delay: 100ms;
+}
+
+/* Never hide content when printing. */
+@media print {
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
 body {
   background-color: var(--color-bg);
   color: var(--color-text);

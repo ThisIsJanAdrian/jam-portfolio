@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
+import { site } from '../../data/site';
 
 export async function getStaticPaths() {
   const projects = await getCollection('projects', ({ data }) => !data.draft);
@@ -11,19 +12,38 @@ const { project } = Astro.props;
 const { Content } = await render(project);
 ---
 
-<Layout title={`${project.data.title} | Your Name`} description={project.data.summary}>
-  <article class="space-y-4 [&_h2]:mt-8 [&_h2]:text-2xl [&_h2]:font-semibold [&_ul]:list-disc [&_ul]:pl-6">
-    <h1 class="text-3xl font-bold">{project.data.title}</h1>
-    <p class="text-[var(--color-muted)]">
-      {project.data.role} · {project.data.tools.join(', ')}
-    </p>
-    <Content />
-    {project.data.repoUrl && (
-      <p>
-        <a href={project.data.repoUrl} class="underline">
-          View the repository
-        </a>
+<Layout title={`${project.data.title} | ${site.name}`} description={project.data.summary}>
+  <div class="mx-auto max-w-3xl px-6 pt-28 pb-24">
+    <a href="/#projects" class="text-sm underline">
+      ← All projects
+    </a>
+    <article class="mt-6 space-y-4 [&_h2]:mt-8 [&_h2]:text-2xl [&_h2]:font-semibold [&_ul]:list-disc [&_ul]:pl-6">
+      <h1 class="text-4xl font-bold tracking-tight">{project.data.title}</h1>
+      <p class="text-[var(--color-muted)]">
+        {project.data.role} · {project.data.stack.join(', ')}
       </p>
-    )}
-  </article>
+      {project.data.award && <p class="font-medium">🏆 {project.data.award}</p>}
+      <Content />
+      {project.data.testing && (
+        <>
+          <h2>How it was tested</h2>
+          <p>{project.data.testing}</p>
+        </>
+      )}
+      {(project.data.demoUrl || project.data.repoUrl) && (
+        <p class="flex gap-4">
+          {project.data.demoUrl && (
+            <a href={project.data.demoUrl} class="underline">
+              Live demo
+            </a>
+          )}
+          {project.data.repoUrl && (
+            <a href={project.data.repoUrl} class="underline">
+              View the repository
+            </a>
+          )}
+        </p>
+      )}
+    </article>
+  </div>
 </Layout>

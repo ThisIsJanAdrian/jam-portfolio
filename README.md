@@ -32,8 +32,8 @@ npm run dev              # http://localhost:4321
 
 ```
 src/
-  pages/        routes (index, about, projects, contact, 404)
-  components/   Astro components and React islands (.tsx)
+  pages/        routes: index (one-page scroll), projects/[id] (case studies), 404
+  components/   Header, Footer, sections/ (Hero, About, Projects, Background, Contact), React islands (.tsx)
   content/      case studies in Markdown/MDX, validated by src/content.config.ts
   layouts/      shared page shell (SEO tags, skip link, header/footer)
   styles/       Tailwind import and design tokens
