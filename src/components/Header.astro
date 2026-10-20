@@ -1,17 +1,21 @@
 ---
 import { site } from '../data/site';
 
-// `id` matches the section id on the home page. Links are absolute (/#id) so they also work
-// from case-study pages.
+// `section` is the id of the home-page section a link stands for ("Jam" = the hero). Links are
+// absolute so they also work from case-study pages; "/#" scrolls to the top without a reload.
 const links = [
-  { id: 'about', label: 'About' },
-  { id: 'projects', label: 'Projects' },
-  { id: 'background', label: 'Background' },
-  { id: 'contact', label: 'Contact' },
+  { href: '/#', section: 'hero', label: site.nickname },
+  { href: '/#about', section: 'about', label: 'About' },
+  { href: '/#projects', section: 'projects', label: 'Projects' },
+  { href: '/#background', section: 'background', label: 'Background' },
+  { href: '/#contact', section: 'contact', label: 'Contact' },
 ];
 
+// The active link only changes its text colour; the coloured pill behind it is the sliding
+// [data-nav-indicator] element, so it can glide from one link to another instead of fading.
+// Tighter padding below `sm` keeps all five links inside the pill on a 360px phone.
 const linkClass =
-  'block rounded-full px-3 py-1.5 text-sm font-medium transition-colors hover:bg-[var(--color-surface)] aria-[current=location]:bg-[var(--color-accent)] aria-[current=location]:text-[var(--color-accent-contrast)]';
+  'relative z-10 block rounded-full px-2 py-1.5 text-[13px] font-medium transition-colors duration-300 motion-reduce:transition-none sm:px-3 sm:text-sm [&:not([aria-current])]:hover:bg-[var(--color-surface)] aria-[current=location]:text-[var(--color-accent-contrast)]';
 ---
 
 <!--
@@ -22,39 +26,149 @@ const linkClass =
 <header class="pointer-events-none fixed inset-x-0 top-4 z-50 flex justify-center px-4">
   <nav
     aria-label="Main"
-    class="pointer-events-auto flex max-w-full items-center gap-1 rounded-full border border-[var(--color-border)] bg-[color-mix(in_srgb,var(--color-bg)_82%,transparent)] px-2 py-1.5 shadow-lg backdrop-blur-md"
+    class="pointer-events-auto flex max-w-full items-center overflow-hidden rounded-full border border-[var(--color-border)] bg-[color-mix(in_srgb,var(--color-bg)_82%,transparent)] px-1.5 py-1.5 sm:px-2 shadow-lg backdrop-blur-md"
   >
-    <!-- "/#" instead of "/": on the home page this scrolls to the top without reloading it. -->
-    <a href="/#" class={`${linkClass} hidden font-semibold sm:block`}>
-      {site.nickname}
-    </a>
-    <ul class="flex items-center gap-1">
-      {links.map((l) => (
-        <li>
-          <a href={`/#${l.id}`} data-section={l.id} class={linkClass}>
-            {l.label}
-          </a>
-        </li>
-      ))}
-    </ul>
+    <div class="relative">
+      <span
+        aria-hidden="true"
+        data-nav-indicator
+        class="nav-indicator pointer-events-none absolute inset-y-0 left-0 w-0 rounded-full bg-[var(--color-accent)] opacity-0"
+      ></span>
+      <ul class="flex items-center gap-0.5 sm:gap-1">
+        {links.map((l) => (
+          <li>
+            <a href={l.href} data-section={l.section} class={linkClass}>
+              {l.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
   </nav>
 </header>
 
+<style>
+  /*
+   * Slide only for people who have not asked for reduced motion; otherwise the highlight jumps.
+   * EDIT HERE to change the feel: the easing curve, and the default duration (350ms). The script
+   * sets --slide-ms per move so that longer jumps take a little longer.
+   */
+  @media (prefers-reduced-motion: no-preference) {
+    .nav-indicator[data-ready] {
+      /* "Ease-out-back": overshoots the target by ~4% and settles. Use cubic-bezier(0.4, 0, 0.2, 1)
+         for a plain ease, or raise the 1.35 for a bouncier overshoot (1.56 is about 10%). */
+      --slide-ease: cubic-bezier(0.3, 1.2, 0.6, 1);
+      transition:
+        transform var(--slide-ms, 350ms) var(--slide-ease),
+        width var(--slide-ms, 350ms) var(--slide-ease),
+        opacity 200ms ease;
+    }
+  }
+</style>
+
 <script>
-  // Highlight the nav link for the section in the middle of the viewport.
+  // Highlight the nav link for the section in the middle of the viewport, and slide the
+  // highlight pill under it.
   const links = document.querySelectorAll<HTMLAnchorElement>('a[data-section]');
   const spied = document.querySelectorAll<HTMLElement>('[data-spy]');
+  const indicator = document.querySelector<HTMLElement>('[data-nav-indicator]');
+
+  // --- Tuning knobs for the slide -------------------------------------------------------------
+  const MIN_MS = 350; // fastest slide (neighbouring links)
+  const MAX_MS = 700; // slowest slide (far apart links)
+  const MS_PER_PX = 0.6; // extra time per pixel travelled
+  const SETTLE_MS = 150; // how long scrolling must be quiet before the page counts as "arrived"
+  // ---------------------------------------------------------------------------------------------
+
+  let placed = false;
+  let lastX = 0;
+
+  const moveIndicator = () => {
+    if (!indicator) return;
+    const active = document.querySelector<HTMLAnchorElement>(
+      'a[data-section][aria-current="location"]',
+    );
+    if (!active) {
+      indicator.style.opacity = '0';
+      return;
+    }
+    const x = active.offsetLeft;
+    if (placed) {
+      const ms = Math.min(MAX_MS, Math.max(MIN_MS, 250 + Math.abs(x - lastX) * MS_PER_PX));
+      indicator.style.setProperty('--slide-ms', `${Math.round(ms)}ms`);
+    }
+    lastX = x;
+    indicator.style.width = `${active.offsetWidth}px`;
+    indicator.style.transform = `translateX(${x}px)`;
+    indicator.style.opacity = '1';
+
+    if (!placed) {
+      // Turn the slide on only after the first placement, so the pill does not glide in from the
+      // left edge on page load.
+      placed = true;
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => indicator.setAttribute('data-ready', '')),
+      );
+    }
+  };
+
+  const setActive = (id: string) => {
+    links.forEach((link) => {
+      if (link.dataset.section === id) link.setAttribute('aria-current', 'location');
+      else link.removeAttribute('aria-current');
+    });
+    moveIndicator();
+  };
 
   if (links.length && spied.length) {
-    const setActive = (id: string) => {
-      links.forEach((link) => {
-        if (link.dataset.section === id) link.setAttribute('aria-current', 'location');
-        else link.removeAttribute('aria-current');
-      });
+    // After a nav click the page smooth-scrolls past every section in between. While that is
+    // happening we ignore the scroll position and go straight to the clicked link, so the pill
+    // makes one clean slide instead of hopping through each section on the way.
+    let travelling = false;
+    let settleTimer: number | undefined;
+
+    const sectionAtMiddle = () => {
+      const y = window.innerHeight * 0.5;
+      for (const section of spied) {
+        const r = section.getBoundingClientRect();
+        if (r.top <= y && r.bottom > y) return section.id;
+      }
+      return null;
     };
+
+    const arrive = () => {
+      travelling = false;
+      const id = sectionAtMiddle();
+      if (id) setActive(id); // re-sync in case the user scrolled somewhere else meanwhile
+    };
+
+    const waitForArrival = () => {
+      window.clearTimeout(settleTimer);
+      settleTimer = window.setTimeout(arrive, SETTLE_MS);
+    };
+
+    window.addEventListener('scroll', () => travelling && waitForArrival(), { passive: true });
+
+    links.forEach((link) =>
+      link.addEventListener('click', (event) => {
+        if (
+          event.button !== 0 ||
+          event.metaKey ||
+          event.ctrlKey ||
+          event.shiftKey ||
+          event.altKey
+        ) {
+          return; // let "open in new tab" and friends behave normally
+        }
+        travelling = true;
+        setActive(link.dataset.section!);
+        waitForArrival(); // covers the case where the page does not need to scroll at all
+      }),
+    );
 
     const observer = new IntersectionObserver(
       (entries) => {
+        if (travelling) return;
         for (const entry of entries) if (entry.isIntersecting) setActive(entry.target.id);
       },
       // A thin band across the middle of the viewport decides the active section.
@@ -62,4 +176,7 @@ const linkClass =
     );
     spied.forEach((section) => observer.observe(section));
   }
+
+  // Keep the pill aligned if the nav changes size (window resize, font loading).
+  if (indicator?.parentElement) new ResizeObserver(moveIndicator).observe(indicator.parentElement);
 </script>
