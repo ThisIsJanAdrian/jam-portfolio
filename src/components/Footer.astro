@@ -1,9 +1,11 @@
 ---
+import { site } from '../data/site';
+
 const year = new Date().getFullYear();
+// One template string on purpose: JSX drops whitespace at line breaks, which once produced "2026Jan".
+const text = `© ${year} ${site.name}. Built with Astro and tested with Playwright.`;
 ---
 
 <footer class="border-t border-[var(--color-border)] text-[var(--color-muted)]">
-  <div class="mx-auto max-w-3xl px-4 py-6 text-sm">
-    © {year} Your Name. Built with Astro and tested with Playwright.
-  </div>
+  <div class="mx-auto max-w-6xl px-6 py-8 text-sm">{text}</div>
 </footer>

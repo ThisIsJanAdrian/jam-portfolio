@@ -1,31 +1,37 @@
 ---
+import { site } from '../data/site';
+
+// `id` matches the section id on the home page. Links are absolute (/#id) so they also work
+// from case-study pages.
 const links = [
-  { href: '/', label: 'Home' },
-  { href: '/about', label: 'About' },
-  { href: '/projects', label: 'Projects' },
-  { href: '/contact', label: 'Contact' },
+  { id: 'about', label: 'About' },
+  { id: 'projects', label: 'Projects' },
+  { id: 'background', label: 'Background' },
+  { id: 'contact', label: 'Contact' },
 ];
-const path = Astro.url.pathname;
+
+const linkClass =
+  'block rounded-full px-3 py-1.5 text-sm font-medium transition-colors hover:bg-[var(--color-surface)] aria-[current=location]:bg-[var(--color-accent)] aria-[current=location]:text-[var(--color-accent-contrast)]';
 ---
 
-<header class="border-b border-[var(--color-border)]">
+<!--
+  Floating "glass" pill. pointer-events are off on the full-width wrapper so it never blocks
+  clicks on the page behind it. The fill is mostly opaque so text contrast stays safe over
+  whatever scrolls underneath.
+-->
+<header class="pointer-events-none fixed inset-x-0 top-4 z-50 flex justify-center px-4">
   <nav
     aria-label="Main"
-    class="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-2 px-4 py-4"
+    class="pointer-events-auto flex max-w-full items-center gap-1 rounded-full border border-[var(--color-border)] bg-[color-mix(in_srgb,var(--color-bg)_82%,transparent)] px-2 py-1.5 shadow-lg backdrop-blur-md"
   >
-    <a href="/" class="font-semibold">
-      Your Name · QA Analyst
+    <!-- "/#" instead of "/": on the home page this scrolls to the top without reloading it. -->
+    <a href="/#" class={`${linkClass} hidden font-semibold sm:block`}>
+      {site.nickname}
     </a>
-    <ul class="flex gap-4">
+    <ul class="flex items-center gap-1">
       {links.map((l) => (
         <li>
-          <a
-            href={l.href}
-            class="underline-offset-4 hover:underline"
-            aria-current={
-              path === l.href || (l.href !== '/' && path.startsWith(l.href)) ? 'page' : undefined
-            }
-          >
+          <a href={`/#${l.id}`} data-section={l.id} class={linkClass}>
             {l.label}
           </a>
         </li>
@@ -33,3 +39,27 @@ const path = Astro.url.pathname;
     </ul>
   </nav>
 </header>
+
+<script>
+  // Highlight the nav link for the section in the middle of the viewport.
+  const links = document.querySelectorAll<HTMLAnchorElement>('a[data-section]');
+  const spied = document.querySelectorAll<HTMLElement>('[data-spy]');
+
+  if (links.length && spied.length) {
+    const setActive = (id: string) => {
+      links.forEach((link) => {
+        if (link.dataset.section === id) link.setAttribute('aria-current', 'location');
+        else link.removeAttribute('aria-current');
+      });
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) if (entry.isIntersecting) setActive(entry.target.id);
+      },
+      // A thin band across the middle of the viewport decides the active section.
+      { rootMargin: '-45% 0px -50% 0px' },
+    );
+    spied.forEach((section) => observer.observe(section));
+  }
+</script>

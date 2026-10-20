@@ -2,7 +2,7 @@
   "ci": {
     "collect": {
       "staticDistDir": "./dist",
-      "url": ["/index.html", "/about/index.html", "/projects/index.html", "/contact/index.html"],
+      "url": ["/index.html", "/projects/personal-blog/index.html"],
       "numberOfRuns": 3
     },
     "assert": {

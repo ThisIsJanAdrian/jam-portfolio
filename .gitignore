@@ -1,3 +1,6 @@
+# personal files as source of truth
+jam_assets/
+
 # build output
 dist/
 .astro/

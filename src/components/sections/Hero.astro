@@ -1,0 +1,65 @@
+---
+import { Image } from 'astro:assets';
+import { site } from '../../data/site';
+// Imported from src/assets so Astro resizes and converts it at build time (an 800px, 690 KB PNG
+// becomes a small WebP at the sizes actually displayed).
+import headshot from '../../assets/jam_headshot.png';
+---
+
+<section id="hero" data-spy class="relative overflow-hidden">
+  <div
+    aria-hidden="true"
+    class="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_55%_at_75%_25%,color-mix(in_srgb,var(--color-accent)_16%,transparent),transparent)]"
+  ></div>
+  <div class="relative mx-auto grid min-h-[92vh] max-w-6xl items-center gap-12 px-6 pt-28 pb-16 md:grid-cols-[1.5fr_1fr]">
+    <div>
+      <p
+        data-reveal
+        class="text-sm font-semibold tracking-widest text-[var(--color-accent)] uppercase"
+      >
+        {site.role}
+      </p>
+      <h1
+        data-reveal
+        style="--reveal-delay: 80ms"
+        class="mt-4 text-5xl font-bold tracking-tight sm:text-6xl lg:text-7xl"
+      >
+        Hi, I'm {site.nickname}.
+      </h1>
+      <p
+        data-reveal
+        style="--reveal-delay: 160ms"
+        class="mt-6 max-w-xl text-xl text-[var(--color-muted)]"
+      >
+        {site.tagline}
+      </p>
+      <p data-reveal style="--reveal-delay: 240ms" class="mt-10 flex flex-wrap gap-4">
+        <a
+          href="#projects"
+          class="rounded-full bg-[var(--color-accent)] px-6 py-3 font-medium text-[var(--color-accent-contrast)]"
+        >
+          View projects
+        </a>
+        <a
+          href="#contact"
+          class="rounded-full border border-[var(--color-border)] bg-[var(--color-bg)] px-6 py-3 font-medium"
+        >
+          Get in touch
+        </a>
+      </p>
+    </div>
+    <div data-reveal style="--reveal-delay: 200ms" class="justify-self-center">
+      <!-- Eager + high priority: this is the largest element above the fold. -->
+      <Image
+        src={headshot}
+        alt={`Portrait of ${site.name}`}
+        width={288}
+        height={288}
+        densities={[1, 2]}
+        loading="eager"
+        fetchpriority="high"
+        class="size-56 rounded-full border border-[var(--color-border)] object-cover shadow-xl sm:size-72"
+      />
+    </div>
+  </div>
+</section>

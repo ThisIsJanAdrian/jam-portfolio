@@ -50,6 +50,8 @@ _Template. Fill in or adjust each section as the site grows._
 3. 200% zoom and 320px-wide viewport: any clipped or overlapping content?
 4. Dark mode and forced-colors mode: any unreadable text?
 5. Slow 3G and offline: does the site degrade gracefully?
+6. Floating glass nav: scroll behind it over light, dark and image backgrounds. Is the link text always readable (contrast), and does it still work where `backdrop-filter` is unsupported?
+7. Anchor navigation: after every nav click, is the section heading fully visible below the nav, and does the browser Back button behave sensibly?
 
 ## 7. Known limitations
 

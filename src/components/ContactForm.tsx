@@ -1,4 +1,4 @@
-import { useState, type SubmitEvent } from 'react';
+import { useEffect, useState, type SubmitEvent } from 'react';
 
 export interface ContactValues {
   name: string;
@@ -27,6 +27,10 @@ export default function ContactForm() {
   const [values, setValues] = useState<ContactValues>({ name: '', email: '', message: '' });
   const [errors, setErrors] = useState<ContactErrors>({});
   const [submitted, setSubmitted] = useState(false);
+  // Flips to true only after React has hydrated this island. Tests wait for it, because typing into
+  // the server-rendered HTML before hydration finishes gets discarded.
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => setHydrated(true), []);
 
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -57,7 +61,7 @@ export default function ContactForm() {
           rows={5}
           className={fieldClass}
           value={values[key]}
-          onChange={(e) => setValues({ ...values, [key]: e.target.value })}
+          onChange={(e) => setValues((prev) => ({ ...prev, [key]: e.target.value }))}
           aria-invalid={errors[key] ? true : undefined}
           aria-describedby={errors[key] ? `${key}-error` : undefined}
         />
@@ -67,7 +71,7 @@ export default function ContactForm() {
           type={type}
           className={fieldClass}
           value={values[key]}
-          onChange={(e) => setValues({ ...values, [key]: e.target.value })}
+          onChange={(e) => setValues((prev) => ({ ...prev, [key]: e.target.value }))}
           aria-invalid={errors[key] ? true : undefined}
           aria-describedby={errors[key] ? `${key}-error` : undefined}
         />
@@ -81,7 +85,7 @@ export default function ContactForm() {
   );
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="space-y-4">
+    <form onSubmit={handleSubmit} noValidate data-hydrated={hydrated} className="space-y-4">
       {field('name', 'Name')}
       {field('email', 'Email', 'email')}
       {field('message', 'Message')}
