@@ -42,10 +42,6 @@ test('section headings are not hidden behind the floating nav', async ({ page })
 
 // "/#" (not "/") so that on the home page the brand link scrolls up instead of reloading the page.
 test.describe('brand link', () => {
-  test.beforeEach(({ isMobile }) => {
-    test.skip(isMobile, 'the brand link is hidden below the sm breakpoint');
-  });
-
   test('points at "/#"', async ({ page }) => {
     await page.goto('/');
     await expect(
@@ -88,17 +84,61 @@ test.describe('brand link', () => {
   });
 });
 
-test('the nav highlights the section being viewed', async ({ page }) => {
+test('the nav highlights the section being viewed, including "Jam" for the hero', async ({
+  page,
+}) => {
   await page.goto('/');
   const nav = page.getByRole('navigation', { name: 'Main' });
-  await expect(nav.locator('[aria-current]')).toHaveCount(0); // top of page: hero, no link active
+  const link = (name: string) => nav.getByRole('link', { name, exact: true });
 
-  await nav.getByRole('link', { name: 'Projects', exact: true }).click();
-  await expect(nav.getByRole('link', { name: 'Projects', exact: true })).toHaveAttribute(
-    'aria-current',
-    'location',
-  );
+  // The top of the page is the hero, which the first link ("Jam") stands for.
+  await expect(link(site.nickname)).toHaveAttribute('aria-current', 'location');
   await expect(nav.locator('[aria-current]')).toHaveCount(1);
+
+  for (const [name] of sections) {
+    await link(name).click();
+    await expect(link(name)).toHaveAttribute('aria-current', 'location');
+    await expect(nav.locator('[aria-current]')).toHaveCount(1);
+  }
+
+  // ...and back to the hero.
+  await link(site.nickname).click();
+  await expect(link(site.nickname)).toHaveAttribute('aria-current', 'location');
+  await expect(nav.locator('[aria-current]')).toHaveCount(1);
+});
+
+// Regression: clicks suspend scroll tracking while the page travels; plain scrolling must not.
+test('the nav highlight follows plain scrolling, with no click involved', async ({ page }) => {
+  await page.goto('/');
+  const nav = page.getByRole('navigation', { name: 'Main' });
+  for (const [name, id] of sections) {
+    await page.evaluate(
+      (target) => document.querySelector(`#${target}`)!.scrollIntoView({ behavior: 'instant' }),
+      id,
+    );
+    await expect(nav.getByRole('link', { name, exact: true })).toHaveAttribute(
+      'aria-current',
+      'location',
+    );
+  }
+});
+
+// One highlight element slides under the active link (rather than each link fading in and out).
+test('the highlight sits exactly under the active link', async ({ page }) => {
+  await page.goto('/');
+  const nav = page.getByRole('navigation', { name: 'Main' });
+  const indicator = page.locator('[data-nav-indicator]');
+  const order = [...sections.map(([name]) => name), site.nickname];
+
+  for (const name of order) {
+    const link = nav.getByRole('link', { name, exact: true });
+    await link.click();
+    await settle(page);
+    const linkBox = (await link.boundingBox())!;
+    const indicatorBox = (await indicator.boundingBox())!;
+    expect(Math.abs(linkBox.x - indicatorBox.x), `${name}: left edge`).toBeLessThanOrEqual(1);
+    expect(Math.abs(linkBox.width - indicatorBox.width), `${name}: width`).toBeLessThanOrEqual(1);
+  }
 });
 
 test('nav stays visible while scrolling', async ({ page }) => {

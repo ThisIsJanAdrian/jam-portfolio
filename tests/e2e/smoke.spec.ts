@@ -53,6 +53,21 @@ test('no console errors on the home page', async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
+// Five links must fit in the pill on the narrowest common phone (360px wide).
+test.describe('narrow phones', () => {
+  test.use({ viewport: { width: 360, height: 740 } });
+
+  test('the nav fits inside the screen and its pill', async ({ page }) => {
+    await page.goto('/');
+    const nav = page.getByRole('navigation', { name: 'Main' });
+    const box = (await nav.boundingBox())!;
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(360);
+    // Nothing inside the pill may spill out of it.
+    expect(await nav.evaluate((el) => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(0);
+  });
+});
+
 // Catches the classic responsive bug: something wider than the screen causing a sideways scroll.
 for (const path of ['/', '/projects/personal-blog']) {
   test(`${path} has no horizontal overflow`, async ({ page }) => {
