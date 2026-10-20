@@ -20,7 +20,7 @@ const h3 = 'text-xl font-semibold';
   class="bg-[var(--color-surface)] px-6 py-24"
 >
   <div class="mx-auto max-w-6xl">
-    <h2 id="background-title" data-reveal class="text-3xl font-bold tracking-tight">
+    <h2 id="background-title" data-reveal class="text-h2">
       Background
     </h2>
     <div class="reveal-stagger mt-10 grid gap-6 md:grid-cols-2">
@@ -33,7 +33,7 @@ const h3 = 'text-xl font-semibold';
               <p>
                 {e.school}, {e.location}
               </p>
-              <p class="text-sm text-[var(--color-muted)]">{formatPeriod(e.start, e.end)}</p>
+              <p class="metric-badge text-[var(--color-muted)]">{formatPeriod(e.start, e.end)}</p>
             </li>
           ))}
         </ul>
@@ -46,7 +46,7 @@ const h3 = 'text-xl font-semibold';
             <li>
               <h4 class="font-semibold">{c.name}</h4>
               <p>{c.issuer}</p>
-              <p class="text-sm text-[var(--color-muted)]">Issued {formatMonth(c.issued)}</p>
+              <p class="metric-badge text-[var(--color-muted)]">Issued {formatMonth(c.issued)}</p>
             </li>
           ))}
         </ul>
@@ -76,7 +76,7 @@ const h3 = 'text-xl font-semibold';
           {skills.map((group) => (
             <div>
               <dt class="font-semibold">{group.label}</dt>
-              <dd class="mt-1 text-[var(--color-muted)]">{group.items.join(' · ')}</dd>
+              <dd class="tech-tag mt-1 text-[var(--color-muted)]">{group.items.join(' · ')}</dd>
             </div>
           ))}
         </dl>

@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import { Font } from 'astro:assets';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { site } from '../data/site';
@@ -23,6 +24,11 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="sitemap" href="/sitemap-index.xml" />
+    <!-- Heading and body fonts are preloaded (visible on first paint). The mono font is only used
+         for small labels further down, so it is left to load on demand. -->
+    <Font cssVariable="--font-cabinet" preload />
+    <Font cssVariable="--font-sora" preload />
+    <Font cssVariable="--font-jetbrains" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
