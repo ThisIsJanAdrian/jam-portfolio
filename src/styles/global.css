@@ -43,6 +43,16 @@
   html {
     /* Keeps anchored section headings clear of the floating nav. */
     scroll-padding-top: 6rem;
+    /* No sideways stretch or swipe-back gesture at the left and right edges, on any device. */
+    overscroll-behavior-x: none;
+  }
+
+  /* No vertical rubber-band at the top and bottom either, but only for mouse and trackpad. Touch
+     devices keep their default so that Android's pull-to-refresh still works. */
+  @media (hover: hover) and (pointer: fine) {
+    html {
+      overscroll-behavior-y: none;
+    }
   }
 
   body {

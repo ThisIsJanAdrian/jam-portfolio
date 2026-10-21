@@ -12,7 +12,7 @@ test.describe('hero terminal', () => {
     await expect(about).toContainText(bio.intro);
     await expect(about).toContainText(bio.closing);
 
-    // Experience has its own section; it must not be repeated in the terminal.
+    // The Journey section covers experience; it must not be repeated in the terminal.
     await expect(about.getByRole('heading', { level: 3 })).toHaveCount(0);
     for (const job of experience) {
       await expect(about).not.toContainText(job.company);

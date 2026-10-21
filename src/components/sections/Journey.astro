@@ -1,0 +1,352 @@
+---
+import { Image } from 'astro:assets';
+import { journey } from '../../data/journey';
+
+const total = journey.length;
+const pad = (n: number) => String(n).padStart(2, '0');
+// One hue per step for the placeholder backgrounds (used when an item has no image).
+const hues = [222, 262, 190, 300, 150];
+
+// ---- How long each step holds the screen -----------------------------------------------------
+// Units are screen heights of scrolling while the panel is pinned. Raise EDGE_SCREENS to make the
+// first and last steps harder to scroll past; raise STEP_SCREENS to slow the steps in between.
+const EDGE_SCREENS = 1.3; // first and last step
+const STEP_SCREENS = 1.1; // every step in between
+// -----------------------------------------------------------------------------------------------
+
+// Pinned scrolling per step, in screen heights.
+const weights = journey.map((_, i) => (i === 0 || i === total - 1 ? EDGE_SCREENS : STEP_SCREENS));
+// The section is as tall as all the pinned scrolling plus the one screen the panel itself covers.
+const span = weights.reduce((sum, w) => sum + w, 0) + 1;
+
+// Each invisible step block is measured so that a step flips exactly `weights[i]` screens of
+// scrolling after the previous one, given that the script reads the middle of the screen
+// (half a screen below the panel's top). The first block therefore starts half a screen "early"
+// and the last one ends half a screen "late".
+const stepHeights = weights.map((w, i) => {
+  if (total === 1) return span;
+  if (i === 0) return w + 0.5;
+  if (i === total - 1) return w + 0.5;
+  return w;
+});
+---
+
+<!--
+  Scroll storytelling. The section is several screens tall (see EDGE_SCREENS / STEP_SCREENS above)
+  and the panel inside it is sticky, so it stays on screen while the page scrolls through the
+  steps. A script marks the current step; CSS keeps the text where it is and slides the background
+  layers up one step at a time.
+
+  There is no visible heading (the screen-reader-only <h2> names the region). Without JavaScript,
+  or in browsers without IntersectionObserver, the same markup renders as a plain list of cards.
+-->
+<section id="journey" data-spy aria-labelledby="journey-title" class="-scroll-mt-24">
+  <h2 id="journey-title" class="sr-only">
+    Journey
+  </h2>
+
+  <div class="journey" data-journey data-weights={weights.join(',')} style={`--span: ${span}`}>
+    <!-- One invisible block per step; the script watches which one is at the reading line. -->
+    <div class="journey-steps" aria-hidden="true">
+      {journey.map((_, i) => (
+        <div data-journey-step={i} style={`--h: ${stepHeights[i]}`} />
+      ))}
+    </div>
+
+    <div class="journey-stage">
+      <div class="journey-panel" data-journey-panel>
+        <div class="journey-backgrounds" aria-hidden="true">
+          {journey.map((item, i) => (
+            <div class="journey-bg" style={`--i: ${i}; --hue: ${hues[i % hues.length]}`}>
+              {item.image && (
+                <Image
+                  src={item.image}
+                  alt=""
+                  widths={[800, 1280, 1920]}
+                  sizes="(min-width: 1152px) 1152px, 100vw"
+                  loading="lazy"
+                  class="journey-img"
+                />
+              )}
+            </div>
+          ))}
+        </div>
+        <div class="journey-scrim" aria-hidden="true"></div>
+
+        <ol class="journey-copy" data-journey-copy>
+          {journey.map((item, i) => (
+            <li
+              class="journey-item"
+              data-journey-item
+              data-active={i === 0 ? '' : undefined}
+              style={`--hue: ${hues[i % hues.length]}`}
+            >
+              <p class="journey-count">
+                {pad(i + 1)} / {pad(total)}
+              </p>
+              <h3 class="journey-title">{item.title}</h3>
+              <p class="journey-org">{item.org}</p>
+              <p class="metric-badge journey-date">{item.period}</p>
+              <p class="journey-desc">{item.description}</p>
+            </li>
+          ))}
+        </ol>
+
+        <ol class="journey-dots" aria-hidden="true">
+          {journey.map((_, i) => (
+            <li data-journey-dot={i} data-active={i === 0 ? '' : undefined} />
+          ))}
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* ---- Base: a plain list of cards (no JavaScript, or no IntersectionObserver) ---------------- */
+  .journey-steps,
+  .journey-backgrounds,
+  .journey-scrim,
+  .journey-dots {
+    display: none;
+  }
+
+  .journey-copy {
+    display: grid;
+    gap: 1.5rem;
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 6rem 1.5rem 3rem;
+    list-style: none;
+  }
+
+  .journey-item {
+    border-radius: 1.5rem;
+    padding: 2rem;
+    color: #f8fafc;
+    background: linear-gradient(
+      135deg,
+      hsl(var(--hue) 55% 22%),
+      hsl(calc(var(--hue) + 40) 50% 10%)
+    );
+  }
+
+  .journey-count {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    color: #cbd5e1;
+  }
+
+  .journey-title {
+    margin-top: 0.75rem;
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: var(--text-h1);
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    color: #fff;
+  }
+
+  .journey-org {
+    margin-top: 0.75rem;
+    font-size: 1.125rem;
+    color: #e2e8f0;
+  }
+
+  .journey-date {
+    margin-top: 0.25rem;
+    color: #cbd5e1;
+  }
+
+  .journey-desc {
+    margin-top: 1rem;
+    max-width: 34rem;
+    color: #e2e8f0;
+  }
+
+  /* ---- Enhanced: pinned panel, constant text, shifting backgrounds ---------------------------- */
+  :global(.js-scrolly) .journey {
+    position: relative;
+    height: calc(var(--span) * 100vh);
+    height: calc(var(--span) * 100svh);
+  }
+
+  :global(.js-scrolly) .journey-steps {
+    display: block;
+    position: absolute;
+    inset: 0;
+  }
+
+  :global(.js-scrolly) .journey-steps > div {
+    height: calc(var(--h) * 100vh);
+    height: calc(var(--h) * 100svh);
+  }
+
+  :global(.js-scrolly) .journey-stage {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    height: 100svh;
+  }
+
+  /* Full-bleed: the panel spans the whole page width and the full screen height, edge to edge.
+     The floating nav simply sits on top of it. */
+  :global(.js-scrolly) .journey-panel {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    isolation: isolate;
+    background: #0b0f17;
+  }
+
+  :global(.js-scrolly) .journey-backgrounds {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+  }
+
+  /* Each layer sits one full panel-height away from its neighbour; changing --active slides them. */
+  :global(.js-scrolly) .journey-bg {
+    position: absolute;
+    inset: 0;
+    transform: translateY(calc((var(--i) - var(--active, 0)) * 100%));
+    background-image:
+      linear-gradient(rgb(255 255 255 / 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(255 255 255 / 0.04) 1px, transparent 1px),
+      radial-gradient(70% 60% at 80% 20%, hsl(var(--hue) 80% 45% / 0.35), transparent),
+      linear-gradient(135deg, hsl(var(--hue) 55% 18%), hsl(calc(var(--hue) + 40) 50% 8%));
+    background-size:
+      40px 40px,
+      40px 40px,
+      auto,
+      auto;
+  }
+
+  :global(.js-scrolly) .journey-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  :global(.js-scrolly) .journey-scrim {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(
+      to top,
+      rgb(2 6 23 / 0.88),
+      rgb(2 6 23 / 0.45) 55%,
+      rgb(2 6 23 / 0.2)
+    );
+  }
+
+  /* All items share one grid cell, so the text block never moves; only which item shows changes. */
+  :global(.js-scrolly) .journey-copy {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    align-content: end;
+    max-width: none;
+    margin: 0;
+    /* The panel is full width, but the text lines up with the content columns of the other sections
+       (a centred 72rem column, never closer than 1.5rem to the screen edge). */
+    padding-inline: max(1.5rem, calc((100% - 72rem) / 2));
+    padding-block: 2rem clamp(2.5rem, 8vh, 5rem);
+  }
+
+  :global(.js-scrolly) .journey-item {
+    grid-area: 1 / 1;
+    max-width: 40rem;
+    padding: 0;
+    border-radius: 0;
+    background: none;
+    opacity: 0;
+    transform: translateY(1rem);
+    pointer-events: none;
+  }
+
+  :global(.js-scrolly) .journey-item[data-active] {
+    opacity: 1;
+    transform: none;
+  }
+
+  :global(.js-scrolly) .journey-dots {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    position: absolute;
+    top: 50%;
+    right: max(1.5rem, calc((100% - 72rem) / 2));
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    transform: translateY(-50%);
+  }
+
+  .journey-dots li {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+    background: rgb(255 255 255 / 0.35);
+  }
+
+  .journey-dots li[data-active] {
+    height: 1.5rem;
+    background: #fff;
+  }
+
+  /* Motion is opt-out: with "reduce" set, steps change instantly. */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.js-scrolly) .journey-bg {
+      transition: transform 800ms cubic-bezier(0.7, 0, 0.2, 1);
+    }
+
+    :global(.js-scrolly) .journey-item {
+      transition:
+        opacity 500ms ease,
+        transform 500ms cubic-bezier(0.2, 0.7, 0.2, 1);
+    }
+
+    .journey-dots li {
+      transition:
+        height 300ms ease,
+        background-color 300ms ease;
+    }
+  }
+</style>
+
+<script>
+  // Marks which step is at the reading line (the middle of the screen) as the page scrolls.
+  const root = document.querySelector<HTMLElement>('[data-journey]');
+
+  if (root && 'IntersectionObserver' in window) {
+    const items = root.querySelectorAll<HTMLElement>('[data-journey-item]');
+    const dots = root.querySelectorAll<HTMLElement>('[data-journey-dot]');
+
+    const setActive = (index: number) => {
+      root.style.setProperty('--active', String(index));
+      items.forEach((el, i) => el.toggleAttribute('data-active', i === index));
+      dots.forEach((el, i) => el.toggleAttribute('data-active', i === index));
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting)
+            setActive(Number((entry.target as HTMLElement).dataset.journeyStep));
+        }
+      },
+      // A 1%-thick band centred on the middle of the screen. The step block heights in the markup
+      // are computed for exactly this reading line, so keep the two in sync.
+      { rootMargin: '-49.5% 0px -49.5% 0px' },
+    );
+
+    root.querySelectorAll('[data-journey-step]').forEach((step) => observer.observe(step));
+  }
+</script>
