@@ -41,6 +41,9 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     -->
     <script is:inline>
       {
+        // Scroll storytelling (the Journey section) works with or without reduced motion; CSS turns
+        // its animations off. It only needs IntersectionObserver.
+        if ('IntersectionObserver' in window) document.documentElement.classList.add('js-scrolly');
         const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         if (!reduce && 'IntersectionObserver' in window) {
           document.documentElement.classList.add('js');

@@ -28,7 +28,7 @@ test('hero portrait loads, has alt text and reserves its space', async ({ page }
 test('home has every section, each labelled by an h2', async ({ page }) => {
   await page.goto('/');
   const sections = await page.getByRole('heading', { level: 2 }).allTextContents();
-  expect(sections).toEqual(['About', 'Experience', 'Projects', 'Background', 'Contact']);
+  expect(sections).toEqual(['About', 'Journey', 'Projects', 'Background', 'Contact']);
 });
 
 // Regression: JSX whitespace once collapsed the footer to "© 2026Jan Adrian Manzanero".

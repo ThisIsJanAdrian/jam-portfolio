@@ -22,7 +22,7 @@ for (const path of paths) {
 
 test('every section is a labelled landmark', async ({ page }) => {
   await page.goto('/');
-  for (const name of ['About', 'Experience', 'Projects', 'Background', 'Contact']) {
+  for (const name of ['About', 'Journey', 'Projects', 'Background', 'Contact']) {
     await expect(page.getByRole('region', { name, exact: true })).toBeVisible();
   }
 });
