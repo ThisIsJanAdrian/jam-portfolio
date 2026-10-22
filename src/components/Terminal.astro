@@ -1,6 +1,13 @@
 ---
+import ExternalLink from './ExternalLink.astro';
 import TerminalPrompt from './TerminalPrompt.astro';
 import { bio } from '../data/profile';
+import { site } from '../data/site';
+
+// Padding gives each link a comfortable tap target (at least 24px tall); the focus ring is white
+// because the page-wide blue one is invisible on this dark card.
+const linkClass =
+  'inline-block rounded px-0.5 py-1.5 underline decoration-slate-500 underline-offset-4 hover:text-white hover:decoration-white focus-visible:outline-white';
 
 // The text comes from `bio` in src/data/profile.ts, so editing it there updates this card.
 // The card is always dark (like a real terminal), in both the light and dark page themes.
@@ -27,10 +34,12 @@ import { bio } from '../data/profile';
     <span class="inline-block size-3 rounded-full bg-red-500/80"></span>
     <span class="inline-block size-3 rounded-full bg-yellow-500/80"></span>
     <span class="inline-block size-3 rounded-full bg-green-500/80"></span>
-    <span class="ml-2 font-mono text-xs text-slate-400">about.md</span>
+    <span class="ml-2 font-mono text-xs text-slate-400 sm:text-sm">about.md</span>
   </div>
 
-  <div class="space-y-3 p-5 font-mono text-[13px] leading-relaxed tracking-normal text-slate-300">
+  <!-- Terminal text: 12px on phones, 15px from 640px up, 16px from 1024px up. Slate-200 (instead of
+       300) and relaxed line spacing keep the monospace text easy to read. -->
+  <div class="space-y-3 p-5 font-mono text-[12px] leading-relaxed tracking-normal text-slate-200 sm:p-6 sm:text-[15px] lg:text-base">
     <TerminalPrompt command="type summary.md" />
     <p class="tracking-normal">{bio.intro}</p>
     <p class="tracking-normal">{bio.closing}</p>
@@ -39,8 +48,16 @@ import { bio } from '../data/profile';
     </TerminalPrompt>
   </div>
 
-  <div class="flex items-center gap-2 border-t border-slate-800/80 bg-slate-950 px-4 py-2.5 font-mono text-[11px] text-slate-400">
-    <span aria-hidden="true" class="inline-block size-2 rounded-full bg-emerald-400"></span>
-    open to connecting
+  <!-- Where to find me: styled like a terminal status bar. GitHub and LinkedIn open in a new tab. -->
+  <div class="flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-slate-800/80 bg-slate-950 px-4 py-1.5 font-mono text-xs text-slate-300 sm:px-6 sm:text-sm">
+    <ExternalLink href={site.links.github} class={linkClass}>
+      GitHub
+    </ExternalLink>
+    <ExternalLink href={site.links.linkedin} class={linkClass}>
+      LinkedIn
+    </ExternalLink>
+    <a href={`mailto:${site.email}`} class={linkClass}>
+      Email
+    </a>
   </div>
 </section>

@@ -1,13 +1,12 @@
 import { expect, test } from '@playwright/test';
 import { site } from '../../src/data/site';
+import { shortName } from '../../src/utils/names';
 
 test('home loads with a title and a single main heading', async ({ page }) => {
   const response = await page.goto('/');
   expect(response?.status()).toBe(200);
   await expect(page).toHaveTitle(new RegExp(site.name));
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText(
-    new RegExp(`hi, i'm ${site.nickname}`, 'i'),
-  );
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(shortName(site));
 });
 
 test('hero portrait loads, has alt text and reserves its space', async ({ page }) => {
