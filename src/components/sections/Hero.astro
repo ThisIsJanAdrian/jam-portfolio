@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets';
 import Terminal from '../Terminal.astro';
 import { site } from '../../data/site';
+import { roles } from '../../data/roles';
 import { shortName } from '../../utils/names';
 // Imported from src/assets so Astro resizes and converts it at build time (a ~3000px, 700 KB
 // photo becomes small WebP files at the sizes actually displayed).
@@ -24,7 +25,7 @@ const nameEm = displayName.length * NAME_EM_PER_CHARACTER;
   ></div>
 
   <!-- Same width and side padding as every other section (a 72rem column). -->
-  <div class="relative mx-auto grid min-h-[92vh] max-w-6xl items-center gap-12 lg:content-center lg:items-stretch px-6 pt-28 pb-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
+  <div class="relative mx-auto grid min-h-[92vh] max-w-[76rem] items-center gap-12 lg:gap-16 lg:content-center lg:items-stretch px-6 pt-28 pb-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
     <!-- Left: a big portrait in the style of a messaging-app profile (an "online" dot on the avatar),
          with the name centered below it and the role underneath as a status. This column is the
          size container for the name. -->
@@ -61,9 +62,23 @@ const nameEm = displayName.length * NAME_EM_PER_CHARACTER;
         data-reveal
         data-status
         style="--reveal-delay: 140ms"
-        class="mt-2 text-sm font-semibold tracking-widest text-[var(--color-accent)] uppercase sm:text-base"
+        data-roles={JSON.stringify(roles)}
+        class="mt-2 flex min-h-[1.5em] items-center justify-center text-sm font-semibold tracking-widest text-[var(--color-accent)] uppercase sm:text-base"
       >
-        {site.role}
+        <!-- Screen readers get all the roles at once; the typing is decoration. The short role below
+             (data-role-static) is what shows with reduced motion or without JavaScript. Otherwise
+             CSS hides it from the first paint and the line starts blank (see the styles). -->
+        <span class="sr-only">{roles.join(', ')}</span>
+        <span aria-hidden="true" data-role-static>
+          {site.role}
+        </span>
+        <span aria-hidden="true" data-role-text></span>
+        <span
+          aria-hidden="true"
+          data-role-cursor
+          hidden
+          class="terminal-cursor ml-0.5 inline-block h-[1.1em] w-[2px] bg-current"
+        ></span>
       </p>
     </div>
 
@@ -86,14 +101,27 @@ const nameEm = displayName.length * NAME_EM_PER_CHARACTER;
 </section>
 
 <style>
+  /* The short role (QA • AI • SWE) is plain HTML, so it shows without JavaScript and with reduced
+     motion. When the typing will run (the "js" class is only set for JavaScript without reduced
+     motion, before the first paint) it is hidden so that it never flashes before the typing starts. */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.js) [data-role-static] {
+      display: none;
+    }
+  }
+
   /* The left column is a size container, so the name (and, on desktop, the avatar) can be sized
      from its width (cqw) and, on desktop, its height (cqh). */
   .hero-col {
     container-type: inline-size;
 
-    /* As large as the normal hero size allows, but shrunk if needed so that it never wraps or
+    /* As large as 90% of the normal hero size allows, but shrunk if needed so that it never wraps or
        spills out of the column (never below 1.5rem). */
-    --name-size: clamp(1.5rem, min(var(--text-hero), calc(100cqw / var(--name-em))), 7.5rem);
+    --name-size: clamp(
+      1.5rem,
+      min(calc(var(--text-hero) * 0.9), calc(100cqw / var(--name-em))),
+      7.5rem
+    );
   }
 
   .hero-name {
@@ -130,9 +158,9 @@ const nameEm = displayName.length * NAME_EM_PER_CHARACTER;
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   if (layer && hero) {
-    const MAX_LAG_PX = 28; // the furthest it appears to trail (fast scrolls ease towards this)
-    const FOLLOW = 0.2; // how much of the gap it closes per frame at 60fps: lower = later to react
-    const CHASE_LIMIT_PX = MAX_LAG_PX * 1.2; // so catching up after a huge jump stays quick
+    const MAX_LAG_PX = 40; // the furthest it appears to trail (fast scrolls ease towards this)
+    const FOLLOW = 0.15; // how much of the gap it closes per frame at 60fps: lower = later to react
+    const CHASE_LIMIT_PX = MAX_LAG_PX * 1.5; // so catching up after a huge jump stays quick
 
     let smoothed = window.scrollY; // the delayed scroll position the terminal is "at"
     let lastTime = performance.now();
@@ -185,5 +213,65 @@ const nameEm = displayName.length * NAME_EM_PER_CHARACTER;
       },
       { passive: true },
     );
+  }
+</script>
+
+<script>
+  // The role under the name is typed out, held, backspaced, and replaced by the next one, starting
+  // from a blank line. Reduced motion (even if switched on later) stops it; CSS then shows the short
+  // role again. The cursor only shows while this runs.
+  const status = document.querySelector<HTMLElement>('[data-status]');
+  const text = status?.querySelector<HTMLElement>('[data-role-text]');
+  const cursor = status?.querySelector<HTMLElement>('[data-role-cursor]');
+  const roles: string[] = JSON.parse(status?.dataset.roles ?? '[]');
+
+  if (status && text && cursor && roles.length) {
+    const TYPE_MS = 60; // per letter typed
+    const ERASE_MS = 30; // per letter backspaced (faster than typing)
+    const HOLD_MS = 2200; // a finished role stays this long
+    const GAP_MS = 350; // pause on the empty line between roles
+
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let timer = 0;
+
+    const run = (current: string, next: number, typing: boolean) => {
+      text.textContent = current;
+      let delay: number;
+      if (typing) {
+        const target = roles[next];
+        if (current.length < target.length) {
+          current = target.slice(0, current.length + 1);
+          delay = TYPE_MS;
+        } else {
+          typing = false;
+          delay = HOLD_MS;
+        }
+      } else if (current.length > 0) {
+        current = current.slice(0, -1);
+        delay = ERASE_MS;
+      } else {
+        typing = true;
+        next = (next + 1) % roles.length;
+        delay = GAP_MS;
+      }
+      timer = window.setTimeout(run, delay, current, next, typing);
+    };
+
+    const start = () => {
+      cursor.hidden = false;
+      window.clearTimeout(timer);
+      // Begin on a blank line: the first role is typed after a short pause.
+      run('', roles.length - 1, false);
+    };
+
+    const stop = () => {
+      window.clearTimeout(timer);
+      cursor.hidden = true;
+      text.textContent = '';
+    };
+
+    const sync = () => (reduceMotion.matches ? stop() : start());
+    reduceMotion.addEventListener('change', sync);
+    sync();
   }
 </script>

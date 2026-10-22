@@ -89,9 +89,9 @@ export const leadership: string[] = [
 /** Short bio shown in the hero terminal. Skills, awards and leadership have their own sections. */
 export const bio = {
   intro:
-    "I'm a thinker and a tinkerer, an analyst and an engineer. I build and test web and mobile apps with AI and prayers.",
+    'A thinker and a tinkerer, an analyst and an engineer. I build and test web and mobile apps with AI and prayers.',
   closing:
-    "Currently focusing on software quality. I'm keen on turning ideas into solutions that make life a little lighter.",
+    'Currently focusing on software quality. Keen on turning ideas into solutions that make life a little lighter.',
 };
 
 export const skills: SkillGroup[] = [

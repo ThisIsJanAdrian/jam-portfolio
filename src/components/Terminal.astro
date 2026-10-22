@@ -40,7 +40,7 @@ const linkClass =
   <!-- Terminal text: 12px on phones, 15px from 640px up, 16px from 1024px up. Slate-200 (instead of
        300) and relaxed line spacing keep the monospace text easy to read. -->
   <div class="space-y-3 p-5 font-mono text-[12px] leading-relaxed tracking-normal text-slate-200 sm:p-6 sm:text-[15px] lg:text-base">
-    <TerminalPrompt command="type summary.md" />
+    <TerminalPrompt command="type about.md" />
     <p class="tracking-normal">{bio.intro}</p>
     <p class="tracking-normal">{bio.closing}</p>
     <TerminalPrompt>
@@ -51,13 +51,13 @@ const linkClass =
   <!-- Where to find me: styled like a terminal status bar. GitHub and LinkedIn open in a new tab. -->
   <div class="flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-slate-800/80 bg-slate-950 px-4 py-1.5 font-mono text-xs text-slate-300 sm:px-6 sm:text-sm">
     <ExternalLink href={site.links.github} class={linkClass}>
-      GitHub
+      github
     </ExternalLink>
     <ExternalLink href={site.links.linkedin} class={linkClass}>
-      LinkedIn
+      linkedin
     </ExternalLink>
     <a href={`mailto:${site.email}`} class={linkClass}>
-      Email
+      email
     </a>
   </div>
 </section>
