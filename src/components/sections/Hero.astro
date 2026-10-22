@@ -2,9 +2,19 @@
 import { Image } from 'astro:assets';
 import Terminal from '../Terminal.astro';
 import { site } from '../../data/site';
-// Imported from src/assets so Astro resizes and converts it at build time (an 800px, 690 KB PNG
-// becomes a small WebP at the sizes actually displayed).
-import headshot from '../../assets/jam_headshot.png';
+import { shortName } from '../../utils/names';
+// Imported from src/assets so Astro resizes and converts it at build time (a ~3000px, 700 KB
+// photo becomes small WebP files at the sizes actually displayed).
+import headshot from '../../assets/jam2_compressed.jpg';
+
+// "Jam Manzanero": the nickname plus the last name (site.name itself is left alone).
+const displayName = shortName(site);
+
+// The name never wraps: it is sized to fit its column (see .hero-name below), up to the normal hero
+// size. That needs the name's width in "ems": in this font (Cabinet Grotesk 800) a character
+// averages about 0.474em, so 0.49 leaves a small safety margin. A longer name just gets smaller.
+const NAME_EM_PER_CHARACTER = 0.49;
+const nameEm = displayName.length * NAME_EM_PER_CHARACTER;
 ---
 
 <section id="hero" data-spy class="relative overflow-hidden">
@@ -12,52 +22,168 @@ import headshot from '../../assets/jam_headshot.png';
     aria-hidden="true"
     class="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_55%_at_75%_25%,color-mix(in_srgb,var(--color-accent)_16%,transparent),transparent)]"
   ></div>
-  <div class="relative mx-auto grid min-h-[92vh] max-w-6xl items-center gap-12 px-6 pt-28 pb-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
-    <div>
-      <div data-reveal class="flex items-center gap-4">
+
+  <!-- Same width and side padding as every other section (a 72rem column). -->
+  <div class="relative mx-auto grid min-h-[92vh] max-w-6xl items-center gap-12 lg:content-center lg:items-stretch px-6 pt-28 pb-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
+    <!-- Left: a big portrait in the style of a messaging-app profile (an "online" dot on the avatar),
+         with the name centered below it and the role underneath as a status. This column is the
+         size container for the name. -->
+    <div
+      class="hero-col flex flex-col items-center justify-center text-center"
+      style={`--name-em: ${nameEm}`}
+    >
+      <div data-reveal class="hero-avatar relative size-28 sm:size-44">
         <!-- Eager + high priority: this is the largest image above the fold. -->
         <Image
           src={headshot}
           alt={`Portrait of ${site.name}`}
-          width={80}
-          height={80}
+          width={320}
+          height={320}
           densities={[1, 2]}
           loading="eager"
           fetchpriority="high"
-          class="size-16 rounded-full border border-[var(--color-border)] object-cover shadow-lg sm:size-20"
+          class="size-full rounded-full border border-[var(--color-border)] object-cover shadow-xl"
         />
-        <p class="text-sm font-semibold tracking-widest text-[var(--color-accent)] uppercase">
-          {site.role}
-        </p>
+        <span
+          aria-hidden="true"
+          data-online-dot
+          class="absolute right-[4.5%] bottom-[4.5%] size-[20%]"
+        >
+          <span class="absolute inset-0 rounded-full bg-emerald-400 opacity-60 motion-safe:animate-ping"></span>
+          <span class="absolute inset-0 rounded-full bg-emerald-500 ring-4 ring-[var(--color-bg)] sm:ring-[6px]"></span>
+        </span>
       </div>
-      <h1 data-reveal style="--reveal-delay: 80ms" class="mt-6 text-hero">
-        Hi, I'm {site.nickname}.
+
+      <h1 data-reveal style="--reveal-delay: 80ms" class="hero-name mt-6 max-w-full">
+        {displayName}
       </h1>
       <p
         data-reveal
-        style="--reveal-delay: 160ms"
-        class="mt-6 max-w-xl text-xl text-[var(--color-muted)]"
+        data-status
+        style="--reveal-delay: 140ms"
+        class="mt-2 text-sm font-semibold tracking-widest text-[var(--color-accent)] uppercase sm:text-base"
       >
-        {site.tagline}
-      </p>
-      <p data-reveal style="--reveal-delay: 240ms" class="mt-10 flex flex-wrap gap-4">
-        <a
-          href="#projects"
-          class="rounded-full bg-[var(--color-accent)] px-6 py-3 font-medium text-[var(--color-accent-contrast)]"
-        >
-          View projects
-        </a>
-        <a
-          href="#contact"
-          class="rounded-full border border-[var(--color-border)] bg-[var(--color-bg)] px-6 py-3 font-medium"
-        >
-          Get in touch
-        </a>
+        {site.role}
       </p>
     </div>
 
+    <!-- Right: just the terminal. -->
     <div data-reveal style="--reveal-delay: 200ms">
-      <Terminal />
+      <!-- Floating terminal. [data-float-scroll] makes it react to scrolling a moment late (script below);
+           .float-idle / .float-sway / .float-tilt make it drift when still. Separate layers, so their
+           transforms never fight each other or the fade-in. -->
+      <div data-float-scroll>
+        <div class="float-idle">
+          <div class="float-sway">
+            <div class="float-tilt">
+              <Terminal />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
+
+<style>
+  /* The left column is a size container, so the name (and, on desktop, the avatar) can be sized
+     from its width (cqw) and, on desktop, its height (cqh). */
+  .hero-col {
+    container-type: inline-size;
+
+    /* As large as the normal hero size allows, but shrunk if needed so that it never wraps or
+       spills out of the column (never below 1.5rem). */
+    --name-size: clamp(1.5rem, min(var(--text-hero), calc(100cqw / var(--name-em))), 7.5rem);
+  }
+
+  .hero-name {
+    white-space: nowrap;
+    font-size: var(--name-size);
+  }
+
+  /* Desktop (two columns): the column's height is the terminal's height. "container-type: size"
+     makes the column ignore its own content when the grid measures the row, so the terminal alone
+     decides the row height, and the column then stretches to match it. The avatar fills what is
+     left after the name, the role and some breathing room, so the whole group (headshot, name and
+     role) comes out a little shorter than the terminal, however long the summary is. */
+  @media (min-width: 1024px) {
+    .hero-col {
+      container-type: size;
+    }
+
+    .hero-avatar {
+      /* group = avatar + name (line-height 1.1) + gaps and role line (3.6rem) + padding (3rem) */
+      --avatar: clamp(7rem, min(100cqw, calc(100cqh - 1.1 * var(--name-size) - 6.6rem)), 20rem);
+      width: var(--avatar);
+      height: var(--avatar);
+    }
+  }
+</style>
+
+<script>
+  // Floating terminal, scroll part: the terminal reacts to scrolling a moment late. It follows the
+  // page's scroll position with a delay, so while you scroll it hangs a little behind (lower than
+  // it should be when scrolling down), and after you stop it drifts into place. How far behind is
+  // capped (MAX_LAG_PX), so a fast scroll never leaves it far away.
+  const layer = document.querySelector<HTMLElement>('[data-float-scroll]');
+  const hero = document.getElementById('hero');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  if (layer && hero) {
+    const MAX_LAG_PX = 28; // the furthest it appears to trail (fast scrolls ease towards this)
+    const FOLLOW = 0.2; // how much of the gap it closes per frame at 60fps: lower = later to react
+    const CHASE_LIMIT_PX = MAX_LAG_PX * 1.2; // so catching up after a huge jump stays quick
+
+    let smoothed = window.scrollY; // the delayed scroll position the terminal is "at"
+    let lastTime = performance.now();
+    let frame = 0;
+    let heroVisible = true;
+
+    new IntersectionObserver(([entry]) => (heroVisible = entry.isIntersecting)).observe(hero);
+
+    const setOffset = (pixels: number) => {
+      layer.style.transform = pixels ? `translate3d(0, ${pixels.toFixed(2)}px, 0)` : '';
+    };
+
+    const step = (time: number) => {
+      frame = 0;
+      const y = window.scrollY;
+      const dt = Math.min(64, time - lastTime);
+      lastTime = time;
+
+      if (reduceMotion.matches || !heroVisible) {
+        smoothed = y;
+        setOffset(0);
+        return;
+      }
+
+      // Chase the real scroll position, closing a fixed share of the gap each frame (frame-rate
+      // independent), but never lagging further than CHASE_LIMIT_PX.
+      const share = 1 - Math.pow(1 - FOLLOW, dt / 16.67);
+      smoothed += (y - smoothed) * share;
+      let lag = y - smoothed; // positive while scrolling down
+      lag = Math.max(-CHASE_LIMIT_PX, Math.min(CHASE_LIMIT_PX, lag));
+      smoothed = y - lag;
+
+      if (Math.abs(lag) < 0.05) {
+        smoothed = y;
+        setOffset(0);
+        return; // settled: stop the loop until the next scroll
+      }
+
+      // tanh eases the lag towards MAX_LAG_PX instead of hitting a hard wall.
+      setOffset(MAX_LAG_PX * Math.tanh(lag / MAX_LAG_PX));
+      frame = requestAnimationFrame(step);
+    };
+
+    window.addEventListener(
+      'scroll',
+      () => {
+        if (frame) return;
+        lastTime = performance.now();
+        frame = requestAnimationFrame(step);
+      },
+      { passive: true },
+    );
+  }
+</script>

@@ -27,8 +27,10 @@ test.describe('hero terminal', () => {
       const { width, height } = el.getBoundingClientRect();
       return { width, height };
     });
-    expect(size.width).toBeLessThanOrEqual(1);
-    expect(size.height).toBeLessThanOrEqual(1);
+    // 1.5 rather than 1: the terminal drifts and tilts slightly, which rotates this 1px box and
+    // inflates its bounding box by a hair (about 1.001px).
+    expect(size.width).toBeLessThanOrEqual(1.5);
+    expect(size.height).toBeLessThanOrEqual(1.5);
 
     await expect(
       page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'About' }),

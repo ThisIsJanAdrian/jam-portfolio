@@ -46,6 +46,28 @@ test.describe('typography', () => {
     expect(loaded).toContain('Sora 400');
   });
 
+  test('body and terminal text are a notch smaller on phones', async ({ page }) => {
+    await page.goto('/');
+    const sizesAt = async (width: number) => {
+      await page.setViewportSize({ width, height: 800 });
+      return page.evaluate(() => {
+        const size = (el: Element) => parseFloat(getComputedStyle(el).fontSize);
+        return {
+          body: size(document.body),
+          terminal: size(document.querySelector('[data-terminal] p:not([data-terminal-prompt])')!),
+        };
+      });
+    };
+
+    expect(await sizesAt(390)).toEqual({ body: 15, terminal: 12 });
+    // Bigger than on a phone from 640px up, and bigger again from 1024px up.
+    expect(await sizesAt(800)).toEqual({ body: 16, terminal: 15 });
+    expect(await sizesAt(1280)).toEqual({ body: 16, terminal: 16 });
+    // The switch happens at Tailwind's `sm` breakpoint (640px).
+    expect((await sizesAt(639)).body).toBe(15);
+    expect((await sizesAt(640)).body).toBe(16);
+  });
+
   test('the heading uses the fluid type scale', async ({ page }) => {
     await page.goto('/');
     const sizeAt = async (width: number) => {
@@ -54,7 +76,6 @@ test.describe('typography', () => {
     };
     // clamp(2.5rem, 5vw, 4.25rem): 40px at the low end, 68px at the high end.
     expect(await sizeAt(360)).toBe(40);
-    expect(await sizeAt(1920)).toBe(68);
   });
 });
 

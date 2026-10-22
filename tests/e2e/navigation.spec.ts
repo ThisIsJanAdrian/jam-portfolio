@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { site } from '../../src/data/site';
+import { shortName } from '../../src/utils/names';
 import { settle } from './helpers';
 
 const sections = [
@@ -81,7 +82,7 @@ test.describe('brand link', () => {
       .getByRole('link', { name: site.nickname })
       .click();
     await expect(page).toHaveURL(/\/#?$/);
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText(/hi, i'm/i);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(shortName(site));
     await settle(page);
     expect(await page.evaluate(() => window.scrollY)).toBe(0);
   });

@@ -64,6 +64,14 @@
     letter-spacing: -0.01em;
   }
 
+  /* A touch smaller body text on phones (below Tailwind's `sm`, 640px). Anything that inherits the
+     body size shrinks with it; headings keep their own fluid scale. */
+  @media (max-width: 639px) {
+    body {
+      font-size: 0.9375rem; /* 15px instead of 16px */
+    }
+  }
+
   p {
     line-height: 1.6;
     letter-spacing: -0.01em;
@@ -153,5 +161,59 @@
 @keyframes terminal-blink {
   50% {
     visibility: hidden;
+  }
+}
+
+/*
+ * Floating terminal (idle part): a calm drift, like something afloat on still water. Up-down and
+ * left-right use sine-wave easing and are offset by a quarter of a cycle, which traces a soft
+ * circle. Their lengths differ only slightly (4.4s and 4.9s), so the loop slowly changes shape
+ * (round, then oval, then round again) instead of repeating exactly or jerking about. A very small
+ * rocking on top adds the last bit of life.
+ *   .float-idle  up and down   (the outer layer)
+ *   .float-sway  left and right
+ *   .float-tilt  a slight rocking
+ * The scroll lag is applied by a script on yet another layer. All off for reduced motion.
+ * Calmer: lengthen the durations. Livelier: shorten them. Wider or tighter: change the distances.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .float-idle {
+    animation: float-y 6s cubic-bezier(0.37, 0, 0.63, 1) infinite alternate;
+  }
+
+  /* The negative delay starts it a quarter of a cycle ahead of the up-down motion: a circle. */
+  .float-sway {
+    animation: float-x 4.7s cubic-bezier(0.37, 0, 0.63, 1) -2.45s infinite alternate;
+  }
+
+  .float-tilt {
+    animation: float-tilt 7s cubic-bezier(0.37, 0, 0.63, 1) -3s infinite alternate;
+  }
+}
+
+@keyframes float-y {
+  from {
+    transform: translateY(4px);
+  }
+  to {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes float-x {
+  from {
+    transform: translateX(-4px);
+  }
+  to {
+    transform: translateX(4px);
+  }
+}
+
+@keyframes float-tilt {
+  from {
+    transform: rotate(-0.1deg);
+  }
+  to {
+    transform: rotate(0.1deg);
   }
 }
