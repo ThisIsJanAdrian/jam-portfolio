@@ -1,5 +1,6 @@
 ---
 import { Image } from 'astro:assets';
+import ExternalLink from '../ExternalLink.astro';
 import { journey } from '../../data/journey';
 
 const total = journey.length;
@@ -85,8 +86,16 @@ const stepHeights = weights.map((w, i) => {
                 {pad(i + 1)} / {pad(total)}
               </p>
               <h3 class="journey-title">{item.title}</h3>
-              <p class="journey-org">{item.org}</p>
-              <p class="metric-badge journey-date">{item.period}</p>
+              <p class="journey-org">
+                {item.orgUrl ? (
+                  <ExternalLink href={item.orgUrl}>{item.org}</ExternalLink>
+                ) : (
+                  item.org
+                )}
+              </p>
+              <p class="metric-badge journey-date">
+                {[item.period, item.location].filter(Boolean).join(' · ')}
+              </p>
               <p class="journey-desc">{item.description}</p>
             </li>
           ))}
@@ -152,6 +161,23 @@ const stepHeights = weights.map((w, i) => {
     margin-top: 0.75rem;
     font-size: 1.125rem;
     color: #e2e8f0;
+  }
+
+  /* The org link is rendered by ExternalLink, so it needs :global to be styled from here. */
+  :global(.journey-org a) {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: rgb(255 255 255 / 0.4);
+    text-underline-offset: 0.25em;
+  }
+
+  :global(.journey-org a:hover) {
+    text-decoration-color: #fff;
+  }
+
+  /* The page-wide focus ring is the (dark blue) accent colour, which is invisible on this dark panel. */
+  :global(.journey-org a:focus-visible) {
+    outline-color: #fff;
   }
 
   .journey-date {
@@ -274,6 +300,9 @@ const stepHeights = weights.map((w, i) => {
   :global(.js-scrolly) .journey-item[data-active] {
     opacity: 1;
     transform: none;
+    /* Inactive items ignore the pointer (they are invisible); the showing one must receive it,
+       otherwise its links cannot be clicked. */
+    pointer-events: auto;
   }
 
   :global(.js-scrolly) .journey-dots {
@@ -331,9 +360,23 @@ const stepHeights = weights.map((w, i) => {
 
     const setActive = (index: number) => {
       root.style.setProperty('--active', String(index));
-      items.forEach((el, i) => el.toggleAttribute('data-active', i === index));
+      items.forEach((el, i) => {
+        el.toggleAttribute('data-active', i === index);
+        // Links in the milestones that are not showing must not be keyboard stops (they are invisible).
+        el.querySelectorAll('a').forEach((link) => {
+          if (i === index) link.removeAttribute('tabindex');
+          else link.setAttribute('tabindex', '-1');
+        });
+      });
       dots.forEach((el, i) => el.toggleAttribute('data-active', i === index));
     };
+
+    setActive(
+      Math.max(
+        0,
+        [...items].findIndex((el) => el.hasAttribute('data-active')),
+      ),
+    );
 
     const observer = new IntersectionObserver(
       (entries) => {

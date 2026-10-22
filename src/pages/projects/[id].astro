@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
+import ExternalLink from '../../components/ExternalLink.astro';
 import { site } from '../../data/site';
 
 export async function getStaticPaths() {
@@ -33,14 +34,14 @@ const { Content } = await render(project);
       {(project.data.demoUrl || project.data.repoUrl) && (
         <p class="flex gap-4">
           {project.data.demoUrl && (
-            <a href={project.data.demoUrl} class="underline">
+            <ExternalLink href={project.data.demoUrl} class="underline">
               Live demo
-            </a>
+            </ExternalLink>
           )}
           {project.data.repoUrl && (
-            <a href={project.data.repoUrl} class="underline">
+            <ExternalLink href={project.data.repoUrl} class="underline">
               View the repository
-            </a>
+            </ExternalLink>
           )}
         </p>
       )}

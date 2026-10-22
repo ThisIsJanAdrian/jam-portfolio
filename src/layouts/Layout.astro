@@ -77,5 +77,44 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
       <slot />
     </main>
     <Footer />
+
+    <script>
+      // Safety net: every link to another website opens in a new tab. Templates already do this
+      // through <ExternalLink>, but links written in Markdown (case studies) or added later would
+      // not, so this catches them, including ones inserted after the page loads.
+      import { EXTERNAL_LINK_ATTRS, NEW_TAB_HINT, isExternalUrl } from '../utils/links';
+
+      const openInNewTab = (link: HTMLAnchorElement) => {
+        const href = link.getAttribute('href');
+        if (!href || link.hasAttribute('download') || !isExternalUrl(href, location.origin)) return;
+
+        link.target = EXTERNAL_LINK_ATTRS.target;
+        const rel = new Set((link.getAttribute('rel') ?? '').split(/\s+/).filter(Boolean));
+        rel.add('noopener');
+        rel.add('noreferrer');
+        link.setAttribute('rel', [...rel].join(' '));
+
+        // Tell screen reader users, unless the template already did.
+        if (!link.textContent?.includes(NEW_TAB_HINT.trim())) {
+          const hint = document.createElement('span');
+          hint.className = 'sr-only';
+          hint.textContent = NEW_TAB_HINT;
+          link.append(hint);
+        }
+      };
+
+      const scan = (root: ParentNode) =>
+        root.querySelectorAll<HTMLAnchorElement>('a[href]').forEach(openInNewTab);
+
+      scan(document);
+      new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+          mutation.addedNodes.forEach((node) => {
+            if (node instanceof HTMLAnchorElement) openInNewTab(node);
+            else if (node instanceof Element) scan(node);
+          });
+        }
+      }).observe(document.body, { childList: true, subtree: true });
+    </script>
   </body>
 </html>

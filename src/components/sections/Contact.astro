@@ -1,5 +1,6 @@
 ---
 import ContactForm from '../ContactForm';
+import ExternalLink from '../ExternalLink.astro';
 import { site } from '../../data/site';
 ---
 
@@ -17,14 +18,14 @@ import { site } from '../../data/site';
           </a>
         </li>
         <li>
-          <a href={site.links.github} class="underline">
+          <ExternalLink href={site.links.github} class="underline">
             GitHub
-          </a>
+          </ExternalLink>
         </li>
         <li>
-          <a href={site.links.linkedin} class="underline">
+          <ExternalLink href={site.links.linkedin} class="underline">
             LinkedIn
-          </a>
+          </ExternalLink>
         </li>
         <li class="text-[var(--color-muted)]">{site.location}</li>
       </ul>
