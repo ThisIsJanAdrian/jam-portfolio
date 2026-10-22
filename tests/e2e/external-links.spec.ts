@@ -42,7 +42,7 @@ test.describe('links to other websites', () => {
     page,
   }) => {
     await page.goto('/');
-    for (const name of [/GitHub/, /LinkedIn/]) {
+    for (const name of [/github/i, /linkedin/i]) {
       // Scoped to the Contact section: the hero terminal links to them as well.
       await expect(page.locator('#contact').getByRole('link', { name })).toHaveAttribute(
         'target',
@@ -120,7 +120,7 @@ test.describe('links to other websites', () => {
       context.waitForEvent('page'),
       page
         .locator('#contact')
-        .getByRole('link', { name: /GitHub/ })
+        .getByRole('link', { name: /github/i })
         .click(),
     ]);
 

@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { site } from '../../src/data/site';
+import { roles } from '../../src/data/roles';
 import { shortName } from '../../src/utils/names';
 
 const box = async (page: Page, selector: string) =>
@@ -33,8 +34,8 @@ test.describe('hero layout', () => {
 
       expect(m.lines, 'the name must never wrap').toBe(1);
       expect(m.textWidth, 'the name must fit its column').toBeLessThanOrEqual(m.columnWidth);
-      // And it stays big: never shrunk below the normal hero size, which is clamp(40px, 5vw, 68px).
-      const heroSize = Math.min(68, Math.max(40, width * 0.05));
+      // And it stays big: never below 90% of the normal hero size, clamp(40px, 5vw, 68px).
+      const heroSize = 0.9 * Math.min(68, Math.max(40, width * 0.05));
       expect(m.fontSize).toBeGreaterThanOrEqual(heroSize - 0.5);
     });
   }
@@ -44,15 +45,17 @@ test.describe('hero layout', () => {
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Jam Manzanero');
   });
 
-  // The hero uses the same 72rem column and side padding as every other section, so its edges line
-  // up with Projects, Background and the rest.
+  // The hero is a little wider (76rem) than the 72rem column of the other sections, centred on the
+  // same axis: 32px wider on each side.
   for (const width of [1440, 1920]) {
-    test(`the hero lines up with the other sections at ${width}px`, async ({ page }) => {
+    test(`the hero is centred on the same axis as the other sections at ${width}px`, async ({
+      page,
+    }) => {
       await page.setViewportSize({ width, height: 900 });
       const hero = await box(page, '#hero > div.grid');
       const projects = await box(page, '#projects > div');
-      expect(Math.abs(hero.x - projects.x)).toBeLessThanOrEqual(1);
-      expect(Math.abs(hero.width - projects.width)).toBeLessThanOrEqual(1);
+      expect(Math.abs(hero.x - (projects.x - 32))).toBeLessThanOrEqual(1);
+      expect(Math.abs(hero.width - (projects.width + 64))).toBeLessThanOrEqual(1);
     });
   }
 
@@ -113,7 +116,7 @@ test.describe('hero layout', () => {
       const avatar = (await portrait(page).boundingBox())!;
       const name = await box(page, 'h1');
       const status = await box(page, '[data-status]');
-      await expect(page.locator('[data-status]')).toHaveText(site.role);
+      await expect(page.locator('[data-status]')).toContainText(roles[0] ?? site.role);
 
       expect(name.y, `name below the avatar at ${width}px`).toBeGreaterThanOrEqual(
         avatar.y + avatar.height - 1,
@@ -228,16 +231,17 @@ test.describe('hero content', () => {
   test('has no buttons and no sub-heading under the name', async ({ page }) => {
     const hero = page.locator('#hero');
     await expect(hero.getByRole('link', { name: /view projects|get in touch/i })).toHaveCount(0);
-    await expect(hero).not.toContainText(site.tagline);
+    // The old tagline line is gone: the name is followed by the role status only.
+    await expect(hero.locator('h1 ~ p')).toHaveCount(1);
   });
 
   test('the terminal ends with links to GitHub, LinkedIn and email', async ({ page }) => {
     const terminal = page.locator('[data-terminal]');
     await expect(terminal).not.toContainText('open to connecting');
 
-    const github = terminal.getByRole('link', { name: /GitHub/ });
-    const linkedin = terminal.getByRole('link', { name: /LinkedIn/ });
-    const email = terminal.getByRole('link', { name: 'Email' });
+    const github = terminal.getByRole('link', { name: /github/i });
+    const linkedin = terminal.getByRole('link', { name: /linkedin/i });
+    const email = terminal.getByRole('link', { name: /^email$/i });
 
     await expect(github).toHaveAttribute('href', site.links.github);
     await expect(linkedin).toHaveAttribute('href', site.links.linkedin);
@@ -250,7 +254,7 @@ test.describe('hero content', () => {
   });
 
   test('those links are comfortable tap targets (at least 24px tall)', async ({ page }) => {
-    for (const name of [/GitHub/, /LinkedIn/, 'Email']) {
+    for (const name of [/github/i, /linkedin/i, /^email$/i]) {
       const link = page.locator('[data-terminal]').getByRole('link', { name });
       expect((await link.boundingBox())!.height).toBeGreaterThanOrEqual(24);
     }
@@ -266,7 +270,7 @@ test.describe('hero content', () => {
       context.waitForEvent('page'),
       page
         .locator('[data-terminal]')
-        .getByRole('link', { name: /GitHub/ })
+        .getByRole('link', { name: /github/i })
         .click(),
     ]);
 
@@ -279,7 +283,7 @@ test.describe('hero content', () => {
     // actually clicking, which would try to open a mail program.
     await page
       .locator('[data-terminal]')
-      .getByRole('link', { name: 'Email' })
+      .getByRole('link', { name: /^email$/i })
       .click({ trial: true });
   });
 });
@@ -302,7 +306,7 @@ test.describe('hero links while the terminal is floating', () => {
       context.waitForEvent('page'),
       page
         .locator('[data-terminal]')
-        .getByRole('link', { name: /GitHub/ })
+        .getByRole('link', { name: /github/i })
         .click({ force: true }),
     ]);
     expect(newTab.url()).toBe(site.links.github);

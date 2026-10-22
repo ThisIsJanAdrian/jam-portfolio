@@ -1,8 +1,7 @@
 export const site = {
   name: 'Jan Adrian Manzanero',
   nickname: 'Jam',
-  role: 'QA Analyst',
-  tagline: 'A thinker and a tinkerer — an engineer!',
+  role: 'QA • AI • SWE',
   email: 'thisisjanadrian@gmail.com',
   location: 'Makati, Philippines',
   links: {
