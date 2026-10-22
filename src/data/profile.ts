@@ -36,7 +36,7 @@ export interface SkillGroup {
 export const experience: Experience[] = [
   {
     role: 'Quality Assurance Analyst',
-    company: 'Vertére Global Solutions, Inc.',
+    company: 'Vértere Global Solutions, Inc.',
     start: '2026-06',
     end: null,
     // TODO: add highlights, e.g. testing types, tools and measurable results.
@@ -89,8 +89,9 @@ export const leadership: string[] = [
 /** Short bio shown in the hero terminal. Skills, awards and leadership have their own sections. */
 export const bio = {
   intro:
-    'I am a computer engineer focusing on software quality and artificial intelligence. My technical foundation is built on Natural Language Processing (NLP) systems, Retrieval-Augmented Generation (RAG) pipelines, software testing architectures, and a whole lot of prayers.',
-  closing: 'Always open to connecting with builders who want to make a change!',
+    "I'm a thinker and a tinkerer, an analyst and an engineer. I build and test web and mobile apps with AI and prayers.",
+  closing:
+    "Currently focusing on software quality. I'm keen on turning ideas into solutions that make life a little lighter.",
 };
 
 export const skills: SkillGroup[] = [
@@ -120,6 +121,13 @@ export function formatMonth(value: string): string {
   }).format(new Date(`${value}-01T00:00:00Z`));
 }
 
-export function formatPeriod(start: string, end: string | null): string {
-  return `${formatMonth(start)} – ${end ? formatMonth(end) : 'Present'}`;
+/**
+ * Formats a date or a period:
+ *   formatPeriod('2026-01')             -> "January 2026"            (a single date)
+ *   formatPeriod('2026-06', null)       -> "June 2026 – Present"     (still ongoing)
+ *   formatPeriod('2025-07', '2025-08')  -> "July 2025 – August 2025" (a range)
+ */
+export function formatPeriod(start: string, end?: string | null): string {
+  if (end === undefined) return formatMonth(start);
+  return `${formatMonth(start)} – ${end === null ? 'Present' : formatMonth(end)}`;
 }

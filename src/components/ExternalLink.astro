@@ -1,0 +1,24 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+import { EXTERNAL_LINK_ATTRS, NEW_TAB_HINT, isExternalUrl } from '../utils/links';
+
+// A normal <a>, except that links to other websites open in a new tab (with a hint for screen
+// readers). Use it for any link whose address comes from data.
+interface Props extends HTMLAttributes<'a'> {
+  href: string;
+}
+
+const { href, ...attrs } = Astro.props;
+const external = isExternalUrl(href, Astro.site?.origin);
+---
+
+{external ? (
+  <a href={href} {...EXTERNAL_LINK_ATTRS} {...attrs}>
+    <slot />
+    <span class="sr-only">{NEW_TAB_HINT}</span>
+  </a>
+) : (
+  <a href={href} {...attrs}>
+    <slot />
+  </a>
+)}

@@ -108,6 +108,50 @@ test.describe('journey', () => {
     expect(Math.abs((await box(page, '[data-journey-panel]')).y)).toBeLessThanOrEqual(1);
   });
 
+  // The other milestones are invisible (stacked behind), so their links must not be keyboard stops.
+  test("only the visible milestone's links can be reached with the Tab key", async ({ page }) => {
+    for (const index of [0, 2, journey.length - 1]) {
+      await goToStep(page, index);
+      await expect.poll(() => activeStep(page)).toBe(index);
+      const tabIndexes = await page
+        .locator('[data-journey-item]')
+        .evaluateAll((all) =>
+          all.map((item) => [...item.querySelectorAll('a')].map((link) => link.tabIndex)),
+        );
+      tabIndexes.forEach((links, i) => {
+        for (const tabIndex of links) {
+          expect(tabIndex, `milestone ${i} while ${index} is showing`).toBe(i === index ? 0 : -1);
+        }
+      });
+    }
+  });
+
+  // Regression: the links had the right attributes, but a CSS rule made them unclickable. Only a
+  // real click proves they work.
+  test("clicking the showing milestone's organization link opens its site in a new tab", async ({
+    page,
+    context,
+  }) => {
+    for (const index of [0, 3]) {
+      const orgUrl = journey[index].orgUrl;
+      expect(orgUrl, `milestone ${index} needs an orgUrl for this test`).toBeTruthy();
+      await context.route(`${new URL(orgUrl!).origin}/**`, (route) =>
+        route.fulfill({ status: 200, contentType: 'text/html', body: '<title>stub</title>' }),
+      );
+
+      await goToStep(page, index);
+      await expect.poll(() => activeStep(page)).toBe(index);
+
+      const [newTab] = await Promise.all([
+        context.waitForEvent('page'),
+        items(page).nth(index).locator('.journey-org a').click({ timeout: 5000 }),
+      ]);
+      expect(newTab.url()).toBe(orgUrl);
+      expect(new URL(page.url()).origin).not.toBe(new URL(orgUrl!).origin); // portfolio tab unchanged
+      await newTab.close();
+    }
+  });
+
   test('shows one milestone at a time and follows the scroll', async ({ page }) => {
     for (let i = 0; i < journey.length; i++) {
       await goToStep(page, i);

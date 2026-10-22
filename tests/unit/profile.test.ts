@@ -14,9 +14,12 @@ describe('formatMonth()', () => {
   });
 
   // Boundary values for the month part.
-  it.each(['2026-00', '2026-13', '2026-1', '26-06', '2026/06', ''])('rejects %j', (value) => {
-    expect(() => formatMonth(value)).toThrow(/Invalid month/);
-  });
+  it.each(['2026-00', '2026-13', '2026-1', '26-06', '2026/06', '', 'present'])(
+    'rejects %j',
+    (value) => {
+      expect(() => formatMonth(value)).toThrow(/Invalid month/);
+    },
+  );
 
   it('is not shifted by the machine time zone (January 1st stays January)', () => {
     expect(formatMonth('2026-01')).toBe('January 2026');
@@ -31,6 +34,20 @@ describe('formatPeriod()', () => {
 
   it('shows both ends of a closed period', () => {
     expect(formatPeriod('2024-01', '2025-03')).toBe('January 2024 – March 2025');
+  });
+
+  it('shows just the date when there is no end (a single milestone)', () => {
+    expect(formatPeriod('2026-01')).toBe('January 2026');
+  });
+
+  // Regressions: a doubled dash ("June 2026 – – Present") and a trailing space ("January 2026 ").
+  it.each([
+    formatPeriod('2026-06', null),
+    formatPeriod('2026-01'),
+    formatPeriod('2025-07', '2025-08'),
+  ])('has no doubled dashes or stray spaces: %j', (text) => {
+    expect(text).not.toMatch(/– –/);
+    expect(text).toBe(text.trim());
   });
 });
 
