@@ -5,6 +5,9 @@ import { revealAll, settle } from './helpers';
 
 const items = (page: Page) => page.locator('[data-journey-item]');
 
+// The event names Chrome's DevTools protocol accepts for touch input.
+type TouchType = 'touchStart' | 'touchMove' | 'touchEnd' | 'touchCancel';
+
 // The Journey is a plain timeline: one full-width band per entry with a few bullet points, and a
 // framed picture on the other side of the line. Nothing is pinned or slides.
 test.describe('journey', () => {
@@ -428,7 +431,7 @@ test.describe('journey', () => {
     });
     const finger = async (page: Page): Promise<Driver> => {
       const cdp = await page.context().newCDPSession(page);
-      const send = (type: string, points: { x: number; y: number }[]) =>
+      const send = (type: TouchType, points: { x: number; y: number }[]) =>
         cdp.send('Input.dispatchTouchEvent', { type, touchPoints: points });
       let last = { x: 0, y: 0 };
       return {
@@ -563,7 +566,7 @@ test.describe('journey', () => {
       test.skip(browserName !== 'chromium', 'touch events are driven through Chromium');
       const start = await centreOf(page, 1);
       const cdp = await page.context().newCDPSession(page);
-      const send = (type: string, y: number) =>
+      const send = (type: TouchType, y: number) =>
         cdp.send('Input.dispatchTouchEvent', {
           type,
           touchPoints: type === 'touchEnd' ? [] : [{ x: start.x, y }],
