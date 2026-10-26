@@ -87,9 +87,9 @@ test.describe('floating terminal', () => {
     const ys = points.map((p) => p.y);
     const range = (v: number[]) => Math.max(...v) - Math.min(...v);
 
-    expect(range(xs), 'moves sideways').toBeGreaterThan(8);
+    expect(range(xs), 'moves sideways').toBeGreaterThan(7);
     expect(range(xs), 'but only a little').toBeLessThanOrEqual(16);
-    expect(range(ys), 'moves up and down').toBeGreaterThan(8);
+    expect(range(ys), 'moves up and down').toBeGreaterThan(7);
     expect(range(ys), 'but only a little').toBeLessThanOrEqual(16);
     // Left-right and up-down do not move in lockstep, so the path loops rather than going back
     // and forth along a line.

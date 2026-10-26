@@ -217,3 +217,61 @@
     transform: rotate(0.1deg);
   }
 }
+
+/*
+ * Heading glint: hover a heading and a soft band of light gray sweeps across its letters
+ * once. The text is painted from a background clipped to the letters: a solid layer in the heading's
+ * own colour underneath (so nothing changes before or after), and the moving highlight on top.
+ * The band starts just left of the first letter and ends past the last one. Where the text starts and
+ * ends is measured by a small script in Layout.astro when the pointer enters (--glint-from and
+ * --glint-to, in px); without it, a default path is used. The band is 6em wide, a third of it
+ * bright, so it reads clearly on short and long headings alike.
+ * Only with a real pointer, and never with reduced motion.
+ */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  main :is(h1, h2, h3):not(.sr-only):hover {
+    --glint-color: #c9ced6; /* a light gray: a shine on the dark letters of the light theme */
+    background:
+      linear-gradient(
+          110deg,
+          transparent 15%,
+          color-mix(in srgb, var(--glint-color) 55%, transparent) 35%,
+          var(--glint-color) 50%,
+          color-mix(in srgb, var(--glint-color) 55%, transparent) 65%,
+          transparent 85%
+        )
+        no-repeat,
+      linear-gradient(currentColor, currentColor);
+    background-size:
+      6em 100%,
+      100% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    /* Parked off to the left, and kept off to the right afterwards (forwards): without both, the
+       band would sit on the letters for as long as the heading stays hovered. */
+    background-position:
+      calc(var(--glint-from, 0px) - 6em) 0,
+      0 0;
+    animation: heading-glint 0.7s ease-in-out forwards;
+  }
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) and (prefers-color-scheme: dark) {
+  main :is(h1, h2, h3):not(.sr-only):hover {
+    --glint-color: #8f96a3; /* the letters are light here, so a mid gray passes over them as a dim glint */
+  }
+}
+
+@keyframes heading-glint {
+  from {
+    background-position:
+      calc(var(--glint-from, 0px) - 6em) 0,
+      0 0;
+  }
+  to {
+    background-position:
+      var(--glint-to, 24em) 0,
+      0 0;
+  }
+}

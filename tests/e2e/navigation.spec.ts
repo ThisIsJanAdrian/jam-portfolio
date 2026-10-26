@@ -33,10 +33,7 @@ test('section headings are not hidden behind the floating nav', async ({ page })
     await nav.getByRole('link', { name, exact: true }).click();
     // Smooth scrolling and the reveal animation both move things, so measure only once they finish.
     await settle(page);
-    // Journey has no visible heading (its h2 is screen-reader-only), and its full-bleed panel
-    // runs under the nav by design, so measure the milestone text instead.
-    const visibleTop = id === 'journey' ? '#journey [data-journey-item][data-active]' : `#${id} h2`;
-    const box = (await page.locator(visibleTop).boundingBox())!;
+    const box = (await page.locator(`#${id} h2`).first().boundingBox())!;
     expect(box.y, `#${id} heading is under the nav`).toBeGreaterThanOrEqual(
       navBox.y + navBox.height,
     );

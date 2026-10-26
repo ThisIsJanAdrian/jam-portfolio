@@ -1,20 +1,16 @@
-import type { ImageMetadata } from 'astro';
-import { education, experience, formatPeriod } from './profile';
+import { education, experience } from './profile';
 
 /**
- * The scrolling "journey" shown in the Journey section, newest first. Each item becomes one
- * step: while the visitor scrolls, the panel stays pinned, the text stays in place, and the
- * background pictures shift from one step to the next.
+ * The timeline shown in the Journey section, newest first. Each item becomes one full-width band
+ * with a few short bullet points, and its picture (if any) in a rounded frame on the opposite side
+ * of the line, next to the year.
  *
- * Vertère and Mapúa are read from profile.ts so they stay in sync. Mark any filler you still have
- * to replace with `placeholder: true`.
+ * Vertère and Mapúa are read from profile.ts so they stay in sync.
  *
- * To add a background picture, put the file in src/assets/journey/ and import it:
- *   import mapua from '../assets/journey/mapua.jpg';
- * then set `image: mapua`. Items without an image get a coloured placeholder background.
- *
- * Dates: formatPeriod('2026-01') is a single date, formatPeriod('2025-07', '2025-08') a range, and
- * formatPeriod('2026-06', null) an ongoing one ("June 2026 – Present").
+ * Pictures live in src/assets/journey/ and are 4:3 (other shapes are cropped to 4:3). To
+ * swap one, replace the file keeping its name (vertere.jpg, graduation.jpg, cycu.jpg, gdsc.jpg,
+ * mapua.jpg). A new item just needs `image: 'its-file-name.jpg'`. Leave `image` out for an entry
+ * without a picture.
  */
 export interface JourneyItem {
   title: string;
@@ -24,11 +20,14 @@ export interface JourneyItem {
   location?: string;
   /** Optional website of the organization. Makes `org` a link that opens in a new tab. */
   orgUrl?: string;
-  /** Free text, e.g. "June 2026 – Present". Use formatPeriod() so it is formatted consistently. */
+  /** Free text, usually just the year, e.g. "2025" or "2026 – Present". */
   period: string;
-  /** One or two short sentences. */
-  description: string;
-  image?: ImageMetadata;
+  /** Two or three short bullet points: keep each to a line or two. */
+  points: string[];
+  /** File name inside src/assets/journey/, e.g. 'mapua.jpg'. */
+  image?: string;
+  /** Describes the picture for screen readers. Leave out if it is only decoration. */
+  imageAlt?: string;
   /** Marks filler content that still has to be replaced. */
   placeholder?: boolean;
 }
@@ -46,61 +45,56 @@ export const journey: JourneyItem[] = [
     title: job.role,
     org: job.company,
     orgUrl: 'https://vertere-gs.com/',
-    period: formatPeriod(job.start, null),
-    // TODO: replace with your own words, and add the office location if you want it shown.
-    description: 'Software quality assurance, with a focus on AI-driven systems.',
+    location: 'Makati, Philippines',
+    period: '2026',
+    image: 'vertere.jpg',
+    points: [
+      'Training in software quality assurance, with a focus on agentic AI-driven testing of web and mobile applications.',
+    ],
   },
   {
     title: 'Graduation',
     org: school.school,
     orgUrl: MAPUA_URL,
     location: school.location,
-    period: formatPeriod(school.end),
-    description: `Earned a ${school.degree}. Cardinal Excellence Awardee and DOST-SEI Merit Scholar.`,
-  },
-  {
-    title: '2026 Mapúa Cardinal Excellence Awards',
-    org: MAPUA,
-    orgUrl: MAPUA_URL,
-    location: MANILA,
-    period: formatPeriod('2026-01'),
-    description: 'Recognized as an awardee for representing the university internationally.',
+    period: '2026',
+    image: 'graduation.jpg',
+    points: [
+      `Completed ${school.degree} with Mapúa's Class of 2026.`,
+      'Recognized with a Cardinal Excellence Award for representing the university internationally.',
+    ],
   },
   {
     title: 'Practice of International Project Design',
     org: 'Chung Yuan Christian University',
     orgUrl: 'https://eng.cycu.edu.tw/',
     location: 'Taoyuan, Taiwan',
-    period: formatPeriod('2025-07', '2025-08'),
-    description:
-      'Developed software and hardware projects with international teams under the mentorship of high-caliber professors and graduate students. Led the technical side of an AI basketball referee that won the Gold and Most Creative awards.',
+    period: '2025',
+    image: 'cycu.jpg',
+    points: [
+      'Developed software and hardware projects with international teams, mentored by high-caliber professors and graduate students.',
+      'Implemented and documented AI basketball referee that won 1st place and Most Creative award.',
+      'Built a microcontroller solution for practical use in Taiwan crosswalks that won 2nd place.',
+    ],
   },
   {
     title: 'Google Developers Student Club',
     org: MAPUA,
     orgUrl: MAPUA_URL,
-    location: 'Makati, Philippines',
-    // TODO: add the dates, e.g. formatPeriod('2023-08', '2024-05').
-    period: formatPeriod('2023-08', '2024-05'),
-    description:
-      'Pioneering executive officer: managed technical events for 200+ members and produced analytical reports to identify process gaps and improvements.',
-  },
-  {
-    title: 'EECE Student Council',
-    org: MAPUA,
-    orgUrl: MAPUA_URL,
     location: MANILA,
-    // TODO: add the dates.
-    period: '<period>',
-    description:
-      'Committee member who coordinated with the logistics team to deliver programs on time for the School of EECE student body.',
+    period: '2023',
+    image: 'gdsc.jpg',
+    points: [
+      'Pioneering executive officer, helped the organization gain traction and supported technical events for 200+ members ',
+    ],
   },
   {
     title: 'Where Dreams Began',
     org: MAPUA,
     orgUrl: MAPUA_URL,
     location: MANILA,
-    period: formatPeriod('2022-08'),
-    description: `Began the ${school.degree}.`,
+    period: '2022',
+    image: 'mapua.jpg',
+    points: [`Began studying for ${school.degree}, supported by government (DOST) scholarship.`],
   },
 ];
