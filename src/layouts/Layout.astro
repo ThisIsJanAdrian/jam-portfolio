@@ -79,6 +79,22 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <Footer />
 
     <script>
+      // Heading glint (see global.css): measure where a heading's letters start and end, so that the
+      // sweep of light crosses exactly the text, whatever the heading's width or alignment.
+      document.addEventListener('pointerover', (event) => {
+        const heading = (event.target as Element | null)?.closest(
+          'main h1, main h2, main h3',
+        ) as HTMLElement | null;
+        if (!heading) return;
+        const range = document.createRange();
+        range.selectNodeContents(heading);
+        const text = range.getBoundingClientRect();
+        const box = heading.getBoundingClientRect();
+        heading.style.setProperty('--glint-from', `${(text.left - box.left).toFixed(1)}px`);
+        heading.style.setProperty('--glint-to', `${(text.right - box.left).toFixed(1)}px`);
+      });
+    </script>
+    <script>
       // Safety net: every link to another website opens in a new tab. Templates already do this
       // through <ExternalLink>, but links written in Markdown (case studies) or added later would
       // not, so this catches them, including ones inserted after the page loads.

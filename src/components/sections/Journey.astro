@@ -1,395 +1,705 @@
 ---
+import type { ImageMetadata } from 'astro';
 import { Image } from 'astro:assets';
 import ExternalLink from '../ExternalLink.astro';
 import { journey } from '../../data/journey';
 
-const total = journey.length;
-const pad = (n: number) => String(n).padStart(2, '0');
-// One hue per step for the placeholder backgrounds (used when an item has no image).
+// One hue per entry for the placeholder backgrounds (a faint tint behind each band).
 const hues = [222, 262, 190, 300, 150];
 
-// ---- How long each step holds the screen -----------------------------------------------------
-// Units are screen heights of scrolling while the panel is pinned. Raise EDGE_SCREENS to make the
-// first and last steps harder to scroll past; raise STEP_SCREENS to slow the steps in between.
-const EDGE_SCREENS = 1.3; // first and last step
-const STEP_SCREENS = 1.1; // every step in between
-// -----------------------------------------------------------------------------------------------
-
-// Pinned scrolling per step, in screen heights.
-const weights = journey.map((_, i) => (i === 0 || i === total - 1 ? EDGE_SCREENS : STEP_SCREENS));
-// The section is as tall as all the pinned scrolling plus the one screen the panel itself covers.
-const span = weights.reduce((sum, w) => sum + w, 0) + 1;
-
-// Each invisible step block is measured so that a step flips exactly `weights[i]` screens of
-// scrolling after the previous one, given that the script reads the middle of the screen
-// (half a screen below the panel's top). The first block therefore starts half a screen "early"
-// and the last one ends half a screen "late".
-const stepHeights = weights.map((w, i) => {
-  if (total === 1) return span;
-  if (i === 0) return w + 0.5;
-  if (i === total - 1) return w + 0.5;
-  return w;
-});
+// Every picture in src/assets/journey/, found by file name so the data only needs 'name.jpg'.
+const pictures = import.meta.glob<{ default: ImageMetadata }>(
+  '../../assets/journey/*.{jpg,jpeg,png,webp,avif}',
+  { eager: true },
+);
+const pictureFor = (file?: string) =>
+  file ? pictures[`../../assets/journey/${file}`]?.default : undefined;
 ---
 
 <!--
-  Scroll storytelling. The section is several screens tall (see EDGE_SCREENS / STEP_SCREENS above)
-  and the panel inside it is sticky, so it stays on screen while the page scrolls through the
-  steps. A script marks the current step; CSS keeps the text where it is and slides the background
-  layers up one step at a time.
-
-  There is no visible heading (the screen-reader-only <h2> names the region). Without JavaScript,
-  or in browsers without IntersectionObserver, the same markup renders as a plain list of cards.
+  A vertical timeline, newest first. A line runs down the middle of the page with a dot for every
+  entry; the entries alternate between the left and the right of it. On desktop each row reads
+  <text> <dot> <year> <image> (or the mirror image), so the year stays beside the dot and the picture
+  (if it has one) balances the text on the other side. (The idea comes from timmypidashev.dev/about.)
+  The picture is a rounded 4:3 frame with a drop shadow (no border). On hover it grows a little
+  and a soft glint sweeps across it. Hold and drag it (a finger: hold still for a moment first, so
+  that swiping still scrolls the page) and it stretches like a rubber band, up to a limit that keeps
+  it clear of the text, and springs back when let go (script below). On a phone the
+  line moves to the left and everything stacks beside it.
 -->
-<section id="journey" data-spy aria-labelledby="journey-title" class="-scroll-mt-24">
-  <h2 id="journey-title" class="sr-only">
-    Journey
-  </h2>
+<section id="journey" data-spy aria-labelledby="journey-title">
+  <div class="mx-auto max-w-6xl px-6 pt-24 pb-4">
+    <h2 id="journey-title" data-reveal class="text-h2">
+      Journey
+    </h2>
+  </div>
 
-  <div class="journey" data-journey data-weights={weights.join(',')} style={`--span: ${span}`}>
-    <!-- One invisible block per step; the script watches which one is at the reading line. -->
-    <div class="journey-steps" aria-hidden="true">
-      {journey.map((_, i) => (
-        <div data-journey-step={i} style={`--h: ${stepHeights[i]}`} />
+  <div class="journey-wrap" data-journey-list>
+    <!-- The line draws itself once, the first time the timeline comes into view (script below). -->
+    <div class="journey-line" aria-hidden="true">
+      <span class="journey-line-fill"></span>
+    </div>
+
+    <ol class="journey-list">
+      {journey.map((item, i) => (
+        <li
+          class="journey-item"
+          data-journey-item
+          data-side={i % 2 === 0 ? 'left' : 'right'}
+          style={`--hue: ${hues[i % hues.length]}`}
+        >
+          <div class="journey-bg" aria-hidden="true"></div>
+
+          <div class="journey-side">
+            <p class="metric-badge journey-year" data-reveal>
+              {item.period}
+            </p>
+            {pictureFor(item.image) && (
+              <figure class="journey-figure" data-reveal>
+                <div class="journey-frame">
+                  <Image
+                    src={pictureFor(item.image)!}
+                    alt={item.imageAlt ?? ''}
+                    widths={[480, 640, 960]}
+                    sizes="(min-width: 640px) 30rem, 90vw"
+                    loading="lazy"
+                    class="journey-img"
+                    draggable="false"
+                  />
+                </div>
+              </figure>
+            )}
+          </div>
+          <span class="journey-dot" data-reveal aria-hidden="true"></span>
+
+          <div class="journey-body" data-reveal>
+            <h3 class="journey-title">{item.title}</h3>
+            <p class="journey-org">
+              {item.orgUrl ? <ExternalLink href={item.orgUrl}>{item.org}</ExternalLink> : item.org}
+              {item.location && <span class="journey-place"> · {item.location}</span>}
+            </p>
+            <ul class="journey-points">
+              {item.points.map((point) => (
+                <li>{point}</li>
+              ))}
+            </ul>
+          </div>
+        </li>
       ))}
-    </div>
-
-    <div class="journey-stage">
-      <div class="journey-panel" data-journey-panel>
-        <div class="journey-backgrounds" aria-hidden="true">
-          {journey.map((item, i) => (
-            <div class="journey-bg" style={`--i: ${i}; --hue: ${hues[i % hues.length]}`}>
-              {item.image && (
-                <Image
-                  src={item.image}
-                  alt=""
-                  widths={[800, 1280, 1920]}
-                  sizes="(min-width: 1152px) 1152px, 100vw"
-                  loading="lazy"
-                  class="journey-img"
-                />
-              )}
-            </div>
-          ))}
-        </div>
-        <div class="journey-scrim" aria-hidden="true"></div>
-
-        <ol class="journey-copy" data-journey-copy>
-          {journey.map((item, i) => (
-            <li
-              class="journey-item"
-              data-journey-item
-              data-active={i === 0 ? '' : undefined}
-              style={`--hue: ${hues[i % hues.length]}`}
-            >
-              <p class="journey-count">
-                {pad(i + 1)} / {pad(total)}
-              </p>
-              <h3 class="journey-title">{item.title}</h3>
-              <p class="journey-org">
-                {item.orgUrl ? (
-                  <ExternalLink href={item.orgUrl}>{item.org}</ExternalLink>
-                ) : (
-                  item.org
-                )}
-              </p>
-              <p class="metric-badge journey-date">
-                {[item.period, item.location].filter(Boolean).join(' · ')}
-              </p>
-              <p class="journey-desc">{item.description}</p>
-            </li>
-          ))}
-        </ol>
-
-        <ol class="journey-dots" aria-hidden="true">
-          {journey.map((_, i) => (
-            <li data-journey-dot={i} data-active={i === 0 ? '' : undefined} />
-          ))}
-        </ol>
-      </div>
-    </div>
+    </ol>
   </div>
 </section>
 
 <style>
-  /* ---- Base: a plain list of cards (no JavaScript, or no IntersectionObserver) ---------------- */
-  .journey-steps,
-  .journey-backgrounds,
-  .journey-scrim,
-  .journey-dots {
-    display: none;
+  .journey-wrap {
+    --edge: max(1.5rem, calc((100% - 72rem) / 2)); /* left edge of the page's content column */
+    --rail-width: 3.5rem; /* the middle column that holds the line and the dots */
+    --dot-size: 2rem;
+    --dot-gap: 2rem; /* breathing room between the dot and the text, and between the dot and the year */
+
+    position: relative;
+    overflow-x: clip; /* nothing sideways ever scrolls the page (clip, unlike hidden, keeps y free) */
+    /* One stacking context for the whole timeline: pictures at the back, then the line, then the
+       dots on top of it. (The entries themselves must not create their own, or the line would be
+       drawn over the dots.) */
+    isolation: isolate;
   }
 
-  .journey-copy {
-    display: grid;
-    gap: 1.5rem;
-    max-width: 72rem;
-    margin: 0 auto;
-    padding: 6rem 1.5rem 3rem;
+  .journey-list {
+    margin: 0;
+    padding: 0;
     list-style: none;
   }
 
-  .journey-item {
-    border-radius: 1.5rem;
-    padding: 2rem;
-    color: #f8fafc;
-    background: linear-gradient(
-      135deg,
-      hsl(var(--hue) 55% 22%),
-      hsl(calc(var(--hue) + 40) 50% 10%)
-    );
+  /* ---- The line ------------------------------------------------------------------------------- */
+  .journey-line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    z-index: 1;
+    width: 2px;
+    transform: translateX(-50%);
+    pointer-events: none;
+    /* Fades out at both ends instead of stopping dead. */
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 6%, #000 94%, transparent);
+    mask-image: linear-gradient(to bottom, transparent, #000 6%, #000 94%, transparent);
   }
 
-  .journey-count {
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    letter-spacing: 0.08em;
-    color: #cbd5e1;
+  .journey-line-fill {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: color-mix(in srgb, var(--color-text) 30%, transparent);
+    transform-origin: top;
+  }
+
+  /* With JavaScript and no reduced motion, the line starts undrawn and grows down once. */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.js) .journey-line-fill {
+      transform: scaleY(0);
+      transition: transform 2s cubic-bezier(0.2, 0.7, 0.2, 1);
+    }
+
+    :global(.js) .journey-line-fill.is-drawn {
+      transform: scaleY(1);
+    }
+  }
+
+  /* ---- How long each entry stays on screen ---------------------------------------------------- */
+  /* Each entry is at least this tall, so its picture stays in view for a while as you scroll. Raise
+     it for a longer pause on each entry, lower it for a tighter list. */
+  .journey-item {
+    --journey-min-height: max(24rem, 60svh);
+    /* Picture shadow: soft and layered, with a faint accent glow. */
+    --journey-shadow:
+      0 24px 48px -16px rgb(0 0 0 / 0.28), 0 8px 16px -8px rgb(0 0 0 / 0.16),
+      0 0 64px -24px color-mix(in srgb, var(--color-accent) 45%, transparent);
+
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) var(--rail-width) minmax(0, 1fr);
+    align-items: center;
+    min-height: var(--journey-min-height);
+    padding: 4rem var(--edge);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .journey-item {
+      /* Black barely shows on a dark page, so the shadow is deeper and the glow stronger. */
+      --journey-shadow:
+        0 28px 56px -16px rgb(0 0 0 / 0.75), 0 10px 20px -8px rgb(0 0 0 / 0.5),
+        0 0 72px -20px color-mix(in srgb, var(--color-accent) 55%, transparent);
+    }
+  }
+
+  /* Desktop placement, all on one row: <text> <dot> <year> <image>, mirrored for right-hand text. */
+  .journey-body,
+  .journey-side,
+  .journey-dot {
+    grid-row: 1;
+  }
+
+  .journey-dot {
+    grid-column: 2;
+    justify-self: center;
+  }
+
+  .journey-item[data-side='left'] .journey-body {
+    grid-column: 1;
+    justify-self: end;
+    padding-right: var(--dot-gap);
+  }
+
+  .journey-item[data-side='left'] .journey-side {
+    grid-column: 3;
+    justify-self: start;
+    padding-left: var(--dot-gap);
+  }
+
+  /* On the right the year must stay next to the dot, so the row runs backwards: image, then year. */
+  .journey-item[data-side='right'] .journey-body {
+    grid-column: 3;
+    justify-self: start;
+    padding-left: var(--dot-gap);
+  }
+
+  .journey-item[data-side='right'] .journey-side {
+    grid-column: 1;
+    justify-self: end;
+    flex-direction: row-reverse;
+    padding-right: var(--dot-gap);
+  }
+
+  /* ---- Background tint ------------------------------------------------------------------------ */
+  .journey-bg {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    /* A very faint tint, so each band looks intentional. */
+    background: radial-gradient(60% 70% at 50% 45%, hsl(var(--hue) 70% 50% / 0.1), transparent);
+    /* Fade the top and bottom edges into the page, so neighbouring entries blend into each other. */
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 22%, #000 78%, transparent);
+    mask-image: linear-gradient(to bottom, transparent, #000 22%, #000 78%, transparent);
+  }
+
+  /* ---- Picture ---------------------------------------------------------------------------------- */
+  .journey-side {
+    display: flex;
+    align-items: center;
+    /* Year to picture: the same distance as dot to year (the gap plus the rail space around the dot). */
+    gap: calc(var(--dot-gap) + (var(--rail-width) - var(--dot-size)) / 2);
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .journey-figure {
+    /* Above the line (1), the dots (2) and every entry's text: a picture that is pulled over its
+       neighbours stays on top. The nav bar (z-index 50, outside this timeline) is still above it. */
+    position: relative;
+    z-index: 3;
+    margin: 0;
+    flex: 0 1 24rem;
+    min-width: 0;
+  }
+
+  .journey-frame {
+    /* Set by the script while the picture is dragged; --lift is the hover growth. */
+    --lift: 1;
+    --drag-x: 0px;
+    --drag-y: 0px;
+    --stretch-x: 1;
+    --stretch-y: 1;
+
+    position: relative;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: 1.25rem;
+    box-shadow: var(--journey-shadow);
+    background: var(--color-surface, transparent);
+    transform: translate(var(--drag-x), var(--drag-y))
+      scale(calc(var(--lift) * var(--stretch-x)), calc(var(--lift) * var(--stretch-y)));
+  }
+
+  /* The glint: a soft diagonal band of light that waits off to the left until hovered. */
+  .journey-frame::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      115deg,
+      transparent 35%,
+      rgb(255 255 255 / 0.32) 50%,
+      transparent 65%
+    );
+    transform: translateX(-120%);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .journey-frame {
+      cursor: grab;
+      /* A finger scrolls the page as normal; only a hold (see the script) turns into a stretch. */
+      touch-action: pan-y;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none; /* no "save image" sheet on iOS */
+      /* The overshoot in this curve is the rubber-band snap-back: it goes a hair past the resting
+         place and settles. It also eases the hover growth. */
+      transition:
+        transform 0.7s cubic-bezier(0.34, 1.7, 0.64, 1),
+        box-shadow 0.35s ease;
+    }
+
+    .journey-frame.is-dragging {
+      cursor: grabbing;
+      transition: box-shadow 0.35s ease; /* follows the pointer at once, no easing */
+    }
+  }
+
+  /* Held with a finger: the same glint as on hover. */
+  @media (prefers-reduced-motion: no-preference) {
+    .journey-frame.is-held::after {
+      transform: translateX(120%);
+      transition: transform 0.7s ease;
+    }
+  }
+
+  /* Hover (only where there is a real pointer; reduced motion gets none of this). */
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .journey-frame:hover {
+      --lift: 1.05;
+    }
+
+    .journey-frame:hover::after {
+      transform: translateX(120%);
+      transition: transform 0.7s ease;
+    }
+  }
+
+  .journey-img {
+    display: block;
+    pointer-events: none; /* the frame takes the touches, so there is no image menu to open */
+    -webkit-touch-callout: none;
+    user-select: none;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* ---- Year, dot and text --------------------------------------------------------------------- */
+  .journey-year {
+    font-weight: 600;
+    color: var(--color-accent);
+  }
+
+  .journey-dot {
+    position: relative;
+    z-index: 2;
+    width: var(--dot-size);
+    height: var(--dot-size);
+    border-radius: 9999px;
+    border: 2px solid var(--color-accent);
+    /* The page colour hides the line behind the dot. */
+    background: var(--color-bg);
+  }
+
+  .journey-dot::after {
+    content: '';
+    position: absolute;
+    inset: 50% auto auto 50%;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+    background: var(--color-accent);
+    transform: translate(-50%, -50%);
+  }
+
+  /* With JavaScript and no reduced motion the dot pops in as its entry arrives. */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.js) .journey-dot[data-reveal]:not(.is-revealed) {
+      transform: scale(0);
+    }
+  }
+
+  .journey-body {
+    width: 100%;
+    max-width: calc(30rem + var(--dot-gap));
   }
 
   .journey-title {
-    margin-top: 0.75rem;
     font-family: var(--font-heading);
     font-weight: 800;
-    font-size: var(--text-h1);
-    line-height: 1.1;
+    font-size: var(--text-h2);
+    line-height: 1.15;
     letter-spacing: -0.03em;
-    color: #fff;
   }
 
   .journey-org {
-    margin-top: 0.75rem;
-    font-size: 1.125rem;
-    color: #e2e8f0;
+    margin-top: 0.5rem;
+    font-size: 1.0625rem;
+    color: var(--color-text);
+  }
+
+  .journey-place {
+    color: var(--color-muted);
   }
 
   /* The org link is rendered by ExternalLink, so it needs :global to be styled from here. */
   :global(.journey-org a) {
     color: inherit;
     text-decoration: underline;
-    text-decoration-color: rgb(255 255 255 / 0.4);
+    text-decoration-color: var(--color-border);
     text-underline-offset: 0.25em;
   }
 
   :global(.journey-org a:hover) {
-    text-decoration-color: #fff;
+    color: var(--color-accent);
+    text-decoration-color: currentColor;
   }
 
-  /* The page-wide focus ring is the (dark blue) accent colour, which is invisible on this dark panel. */
-  :global(.journey-org a:focus-visible) {
-    outline-color: #fff;
-  }
-
-  .journey-date {
-    margin-top: 0.25rem;
-    color: #cbd5e1;
-  }
-
-  .journey-desc {
-    margin-top: 1rem;
-    max-width: 34rem;
-    color: #e2e8f0;
-  }
-
-  /* ---- Enhanced: pinned panel, constant text, shifting backgrounds ---------------------------- */
-  :global(.js-scrolly) .journey {
-    position: relative;
-    height: calc(var(--span) * 100vh);
-    height: calc(var(--span) * 100svh);
-  }
-
-  :global(.js-scrolly) .journey-steps {
-    display: block;
-    position: absolute;
-    inset: 0;
-  }
-
-  :global(.js-scrolly) .journey-steps > div {
-    height: calc(var(--h) * 100vh);
-    height: calc(var(--h) * 100svh);
-  }
-
-  :global(.js-scrolly) .journey-stage {
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    height: 100svh;
-  }
-
-  /* Full-bleed: the panel spans the whole page width and the full screen height, edge to edge.
-     The floating nav simply sits on top of it. */
-  :global(.js-scrolly) .journey-panel {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    isolation: isolate;
-    background: #0b0f17;
-  }
-
-  :global(.js-scrolly) .journey-backgrounds {
-    display: block;
-    position: absolute;
-    inset: 0;
-    z-index: -2;
-  }
-
-  /* Each layer sits one full panel-height away from its neighbour; changing --active slides them. */
-  :global(.js-scrolly) .journey-bg {
-    position: absolute;
-    inset: 0;
-    transform: translateY(calc((var(--i) - var(--active, 0)) * 100%));
-    background-image:
-      linear-gradient(rgb(255 255 255 / 0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgb(255 255 255 / 0.04) 1px, transparent 1px),
-      radial-gradient(70% 60% at 80% 20%, hsl(var(--hue) 80% 45% / 0.35), transparent),
-      linear-gradient(135deg, hsl(var(--hue) 55% 18%), hsl(calc(var(--hue) + 40) 50% 8%));
-    background-size:
-      40px 40px,
-      40px 40px,
-      auto,
-      auto;
-  }
-
-  :global(.js-scrolly) .journey-img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  :global(.js-scrolly) .journey-scrim {
-    display: block;
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    background: linear-gradient(
-      to top,
-      rgb(2 6 23 / 0.88),
-      rgb(2 6 23 / 0.45) 55%,
-      rgb(2 6 23 / 0.2)
-    );
-  }
-
-  /* All items share one grid cell, so the text block never moves; only which item shows changes. */
-  :global(.js-scrolly) .journey-copy {
-    position: absolute;
-    inset: 0;
-    display: grid;
-    align-content: end;
-    max-width: none;
-    margin: 0;
-    /* The panel is full width, but the text lines up with the content columns of the other sections
-       (a centred 72rem column, never closer than 1.5rem to the screen edge). */
-    padding-inline: max(1.5rem, calc((100% - 72rem) / 2));
-    padding-block: 2rem clamp(2.5rem, 8vh, 5rem);
-  }
-
-  :global(.js-scrolly) .journey-item {
-    grid-area: 1 / 1;
-    max-width: 40rem;
-    padding: 0;
-    border-radius: 0;
-    background: none;
-    opacity: 0;
-    transform: translateY(1rem);
-    pointer-events: none;
-  }
-
-  :global(.js-scrolly) .journey-item[data-active] {
-    opacity: 1;
-    transform: none;
-    /* Inactive items ignore the pointer (they are invisible); the showing one must receive it,
-       otherwise its links cannot be clicked. */
-    pointer-events: auto;
-  }
-
-  :global(.js-scrolly) .journey-dots {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    position: absolute;
-    top: 50%;
-    right: max(1.5rem, calc((100% - 72rem) / 2));
-    margin: 0;
+  .journey-points {
+    margin: 1.25rem 0 0;
     padding: 0;
     list-style: none;
-    transform: translateY(-50%);
+    color: var(--color-muted);
   }
 
-  .journey-dots li {
-    width: 0.5rem;
-    height: 0.5rem;
+  .journey-points li {
+    position: relative;
+    padding-left: 1.25rem;
+  }
+
+  .journey-points li + li {
+    margin-top: 0.5rem;
+  }
+
+  .journey-points li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.7em;
+    width: 0.4rem;
+    height: 0.4rem;
     border-radius: 9999px;
-    background: rgb(255 255 255 / 0.35);
+    background: var(--color-accent);
   }
 
-  .journey-dots li[data-active] {
-    height: 1.5rem;
-    background: #fff;
-  }
-
-  /* Motion is opt-out: with "reduce" set, steps change instantly. */
-  @media (prefers-reduced-motion: no-preference) {
-    :global(.js-scrolly) .journey-bg {
-      transition: transform 800ms cubic-bezier(0.7, 0, 0.2, 1);
+  /* ---- Phones: the line moves to the left, and everything stacks beside it -------------------- */
+  @media (max-width: 639px) {
+    .journey-wrap {
+      --rail-width: 2.5rem;
+      --dot-gap: 0;
     }
 
-    :global(.js-scrolly) .journey-item {
-      transition:
-        opacity 500ms ease,
-        transform 500ms cubic-bezier(0.2, 0.7, 0.2, 1);
+    .journey-line {
+      /* The centre of the dot column: the page edge plus half the column. */
+      left: calc(var(--edge) + var(--rail-width) / 2);
     }
 
-    .journey-dots li {
-      transition:
-        height 300ms ease,
-        background-color 300ms ease;
+    .journey-item {
+      --journey-min-height: 0; /* the entries are only as tall as their content */
+      padding-block: 2.5rem; /* closer together than on desktop (4rem) */
+      grid-template-columns: var(--rail-width) minmax(0, 1fr);
+      grid-template-rows: auto auto auto;
+      align-items: start;
+      align-content: center;
+      row-gap: 0.5rem;
+      column-gap: 1rem; /* between the dot and the year, text and picture */
+    }
+
+    /* The year and the picture become separate grid items: year, then text, then picture. */
+    .journey-side {
+      display: contents;
+    }
+
+    .journey-figure {
+      grid-column: 2;
+      grid-row: 3;
+      width: 100%;
+      /* Room above the picture, so that stretching it never reaches the text. */
+      margin-top: 1.25rem;
+    }
+
+    /* Smaller text on phones. */
+    .journey-title {
+      font-size: 1.25rem;
+    }
+
+    .journey-org {
+      margin-top: 0.375rem;
+      font-size: 0.9375rem;
+    }
+
+    .journey-points {
+      margin-top: 0.875rem;
+      font-size: 0.875rem;
+    }
+
+    .journey-dot {
+      grid-column: 1;
+      grid-row: 1;
+      align-self: center;
+    }
+
+    .journey-year {
+      grid-column: 2;
+      grid-row: 1;
+      align-self: center; /* level with the middle of the dot */
+      justify-self: start;
+    }
+
+    .journey-item[data-side] .journey-body {
+      grid-column: 2;
+      grid-row: 2;
+      justify-self: start;
     }
   }
 </style>
 
 <script>
-  // Marks which step is at the reading line (the middle of the screen) as the page scrolls.
-  const root = document.querySelector<HTMLElement>('[data-journey]');
+  // Rubber-band stretch: hold a picture and drag, and it follows the pointer but with growing
+  // resistance, up to a limit; let go and CSS springs it back (the overshoot curve on
+  // .journey-frame). The pull is exponential: the first pixels move it almost 1:1, then it gets
+  // stiffer and approaches the limit (MAX_OFFSET_PX) without passing it. It also grows a little
+  // (MAX_STRETCH), the same in both directions, so it never looks squashed.
+  //
+  // On top of that limit, where it may go depends on the screen:
+  //  - Phones: it can never leave the screen: it keeps SCREEN_PADDING_PX (4px) from every edge.
+  //  - Desktop: it can never cross any of the Journey's text (titles, organizations, bullets). It may
+  //    pass over the years and the dots.
+  // When the pull would break the rule, it is reduced (by bisection) to the most it can be.
+  //
+  // A mouse drags at once. A finger must first HOLD still for a moment (HOLD_MS): the picture then
+  // gleams to say it is held, and can be stretched. Swiping straight away scrolls the page as usual,
+  // so the pictures never trap a scroll. While it is held, the long-press menu (save / search image)
+  // is suppressed.
+  const MAX_OFFSET_PX = 120; // how far the picture can be pulled along the drag direction
+  const MAX_STRETCH = 0.05; // how much bigger it gets at the limit (5%), in both directions
+  const STIFFNESS_PX = 160; // drag distance at which about 63% of the limit is reached
+  const SCREEN_PADDING_PX = 4; // phones: the room kept between the picture and the screen edge
+  const TEXT_CLEARANCE_PX = 4; // desktop: the room kept between the picture and the text
+  const HOLD_MS = 350; // how long a finger must rest on a picture before it can be stretched
+  const HOLD_SLOP_PX = 10; // moving further than this before then means "scroll", not "hold"
+  const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const phone = window.matchMedia('(max-width: 639px)');
+  const TEXT = '.journey-title, .journey-org, .journey-points li';
 
-  if (root && 'IntersectionObserver' in window) {
-    const items = root.querySelectorAll<HTMLElement>('[data-journey-item]');
-    const dots = root.querySelectorAll<HTMLElement>('[data-journey-dot]');
+  type Box = { left: number; top: number; right: number; bottom: number };
 
-    const setActive = (index: number) => {
-      root.style.setProperty('--active', String(index));
-      items.forEach((el, i) => {
-        el.toggleAttribute('data-active', i === index);
-        // Links in the milestones that are not showing must not be keyboard stops (they are invisible).
-        el.querySelectorAll('a').forEach((link) => {
-          if (i === index) link.removeAttribute('tabindex');
-          else link.setAttribute('tabindex', '-1');
-        });
-      });
-      dots.forEach((el, i) => el.toggleAttribute('data-active', i === index));
+  for (const frame of document.querySelectorAll<HTMLElement>('.journey-frame')) {
+    let pointer: { id: number; x: number; y: number; touch: boolean } | null = null;
+    let held = false; // the picture is being dragged (a finger: after the hold)
+    let holdTimer = 0;
+    let touchedAt = 0; // when a finger last touched, to tell a long-press menu from a mouse click
+    // Where the picture sits (and how big it is) with no drag applied, in screen coordinates.
+    let home = { cx: 0, cy: 0, w: 0, h: 0 };
+
+    const release = () => {
+      clearTimeout(holdTimer);
+      pointer = null;
+      held = false;
+      frame.classList.remove('is-dragging', 'is-held');
+      for (const name of ['--drag-x', '--drag-y', '--stretch-x', '--stretch-y']) {
+        frame.style.removeProperty(name);
+      }
     };
 
-    setActive(
-      Math.max(
-        0,
-        [...items].findIndex((el) => el.hasAttribute('data-active')),
-      ),
-    );
+    // The picture's size and centre without the drag: the hover growth (--lift) is part of it.
+    const measureHome = () => {
+      const rect = frame.getBoundingClientRect();
+      const matrix = new DOMMatrix(getComputedStyle(frame).transform);
+      const lift = parseFloat(getComputedStyle(frame).getPropertyValue('--lift')) || 1;
+      const w = (rect.width / matrix.a) * lift;
+      const h = (rect.height / matrix.d) * lift;
+      home = {
+        cx: rect.left + rect.width / 2 - matrix.e,
+        cy: rect.top + rect.height / 2 - matrix.f,
+        w,
+        h,
+      };
+    };
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting)
-            setActive(Number((entry.target as HTMLElement).dataset.journeyStep));
+    const grab = () => {
+      if (!pointer) return;
+      measureHome();
+      held = true;
+      frame.classList.add('is-dragging', 'is-held');
+      frame.setPointerCapture(pointer.id);
+    };
+
+    // Does the picture, pulled by this much, stay where it is allowed to be?
+    const fits = (box: Box, obstacles: Box[], bounds: Box | null) => {
+      if (bounds) {
+        return (
+          box.left >= bounds.left &&
+          box.right <= bounds.right &&
+          box.top >= bounds.top &&
+          box.bottom <= bounds.bottom
+        );
+      }
+      return obstacles.every(
+        (o) =>
+          box.right + TEXT_CLEARANCE_PX <= o.left ||
+          box.left - TEXT_CLEARANCE_PX >= o.right ||
+          box.bottom + TEXT_CLEARANCE_PX <= o.top ||
+          box.top - TEXT_CLEARANCE_PX >= o.bottom,
+      );
+    };
+
+    frame.addEventListener('pointerdown', (event) => {
+      if (motion.matches || (event.pointerType === 'mouse' && event.button !== 0)) return;
+      const touch = event.pointerType !== 'mouse';
+      pointer = { id: event.pointerId, x: event.clientX, y: event.clientY, touch };
+      if (touch) {
+        touchedAt = Date.now();
+        holdTimer = window.setTimeout(grab, HOLD_MS);
+      } else {
+        grab();
+      }
+    });
+
+    frame.addEventListener('pointermove', (event) => {
+      if (!pointer || event.pointerId !== pointer.id) return;
+      const dx = event.clientX - pointer.x;
+      const dy = event.clientY - pointer.y;
+      const distance = Math.hypot(dx, dy);
+      if (!held) {
+        // A finger that moves before the hold is a scroll: leave it alone.
+        if (distance > HOLD_SLOP_PX) release();
+        return;
+      }
+      if (distance === 0) return;
+      const ux = dx / distance;
+      const uy = dy / distance;
+      const wanted = 1 - Math.exp(-distance / STIFFNESS_PX); // 0 at rest, towards 1 at the limit
+
+      // The rule for where it may go. (Re-read on every move: the page may scroll meanwhile.)
+      const bounds: Box | null = phone.matches
+        ? {
+            left: Math.min(SCREEN_PADDING_PX, home.cx - home.w / 2),
+            right: Math.max(window.innerWidth - SCREEN_PADDING_PX, home.cx + home.w / 2),
+            top: Math.min(SCREEN_PADDING_PX, home.cy - home.h / 2),
+            bottom: Math.max(window.innerHeight - SCREEN_PADDING_PX, home.cy + home.h / 2),
+          }
+        : null;
+      const obstacles: Box[] = phone.matches
+        ? []
+        : [...document.querySelectorAll<HTMLElement>(`#journey :is(${TEXT}), #journey h2`)].map(
+            (el) => el.getBoundingClientRect(),
+          );
+
+      const placed = (pull: number) => {
+        // The same growth in both directions, so the picture keeps its shape.
+        const sx = 1 + MAX_STRETCH * pull;
+        const sy = sx;
+        const cx = home.cx + MAX_OFFSET_PX * pull * ux;
+        const cy = home.cy + MAX_OFFSET_PX * pull * uy;
+        const w = home.w * sx;
+        const h = home.h * sy;
+        return {
+          sx,
+          sy,
+          tx: MAX_OFFSET_PX * pull * ux,
+          ty: MAX_OFFSET_PX * pull * uy,
+          box: { left: cx - w / 2, right: cx + w / 2, top: cy - h / 2, bottom: cy + h / 2 },
+        };
+      };
+
+      // The most of the wanted pull that still obeys the rule (the rest position always does).
+      let pull = wanted;
+      if (!fits(placed(pull).box, obstacles, bounds)) {
+        let low = 0;
+        let high = wanted;
+        for (let i = 0; i < 14; i++) {
+          const mid = (low + high) / 2;
+          if (fits(placed(mid).box, obstacles, bounds)) low = mid;
+          else high = mid;
         }
+        pull = low;
+      }
+
+      const result = placed(pull);
+      frame.style.setProperty('--drag-x', `${result.tx.toFixed(2)}px`);
+      frame.style.setProperty('--drag-y', `${result.ty.toFixed(2)}px`);
+      frame.style.setProperty('--stretch-x', result.sx.toFixed(4));
+      frame.style.setProperty('--stretch-y', result.sy.toFixed(4));
+    });
+
+    // Once held, the page must not scroll under the finger. (Needs a non-passive listener.)
+    frame.addEventListener(
+      'touchmove',
+      (event) => {
+        if (held && event.cancelable) event.preventDefault();
       },
-      // A 1%-thick band centred on the middle of the screen. The step block heights in the markup
-      // are computed for exactly this reading line, so keep the two in sync.
-      { rootMargin: '-49.5% 0px -49.5% 0px' },
+      { passive: false },
     );
 
-    root.querySelectorAll('[data-journey-step]').forEach((step) => observer.observe(step));
+    // The long-press menu (save image, search image...) never opens on a picture.
+    frame.addEventListener('contextmenu', (event) => {
+      if (held || pointer?.touch || Date.now() - touchedAt < 1000) event.preventDefault();
+    });
+
+    for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) {
+      frame.addEventListener(type, release);
+    }
+  }
+</script>
+
+<script>
+  // Draws the timeline line once, the first time the timeline scrolls into view.
+  const list = document.querySelector<HTMLElement>('[data-journey-list]');
+  const fill = list?.querySelector<HTMLElement>('.journey-line-fill');
+
+  if (list && fill && 'IntersectionObserver' in window) {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        fill.classList.add('is-drawn');
+        observer.disconnect();
+      },
+      { threshold: 0.02 },
+    );
+    observer.observe(list);
   }
 </script>
