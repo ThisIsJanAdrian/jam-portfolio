@@ -1,0 +1,248 @@
+---
+import { credentials, disciplines, formatMonth, skills } from '../../data/profile';
+
+// Newest first.
+const certifications = [...credentials].sort((a, b) => b.issued.localeCompare(a.issued));
+const labelOf = (id: string) => disciplines.find((d) => d.id === id)!.label;
+---
+
+<!--
+  Skills and certifications in one section, after bryllim.com: first the claim, then the proof.
+  The skills are one pool of pills. Pick QA, SWE or AI (a colour each) and the skills that count
+  towards it light up in that colour while the rest fade back; pick it again, or "All", for the
+  plain pool. Without JavaScript the buttons are hidden and the pool is simply all of it.
+-->
+<section id="skills" data-spy aria-labelledby="skills-title" class="px-6 pt-24 pb-8">
+  <div class="mx-auto max-w-6xl">
+    <h2 id="skills-title" data-reveal class="text-h2">
+      Skills
+    </h2>
+
+    <div
+      data-reveal
+      class="skill-filter mt-8"
+      role="group"
+      aria-label="Filter skills by discipline"
+    >
+      <button type="button" class="chip" data-filter-button="all" aria-pressed="true">
+        All
+      </button>
+      {disciplines.map((d) => (
+        <button
+          type="button"
+          class="chip"
+          data-filter-button={d.id}
+          data-discipline={d.id}
+          aria-pressed="false"
+        >
+          {d.label}
+        </button>
+      ))}
+    </div>
+    <p class="sr-only" role="status" data-skill-status></p>
+
+    <ul data-reveal data-skill-pool data-filter="all" class="skill-pool mt-6">
+      {skills.map((skill) => (
+        <li class="skill" {...Object.fromEntries(skill.disciplines.map((d) => [`data-${d}`, '']))}>
+          <span class="dots" aria-hidden="true">
+            {skill.disciplines.map((d) => (
+              <span class="dot" data-discipline={d} />
+            ))}
+          </span>
+          {skill.name}
+          <span class="sr-only"> ({skill.disciplines.map((d) => labelOf(d)).join(', ')})</span>
+        </li>
+      ))}
+    </ul>
+
+    <h3 data-reveal class="mt-16 text-xl font-semibold">
+      Certifications
+    </h3>
+    <ul class="reveal-stagger mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {certifications.map((c) => (
+        <li
+          data-reveal
+          class="flex flex-col rounded-2xl border border-[var(--color-border)] p-6 transition-colors duration-200 hover:bg-[var(--color-surface)]"
+        >
+          <h4 class="font-semibold">{c.name}</h4>
+          <p class="mt-1 text-[var(--color-muted)]">{c.issuer}</p>
+          <p class="metric-badge mt-3 text-sm text-[var(--color-muted)]">
+            Issued {formatMonth(c.issued)}
+          </p>
+          {c.url && (
+            <a
+              href={c.url}
+              class="mt-4 text-sm font-medium text-[var(--color-accent)] hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Verify →
+            </a>
+          )}
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  /* One colour per discipline: green QA, red SWE, blue AI. Darker for light mode, lighter for dark,
+     so a coloured outline and the white (or near-black) label on a selected button stay readable. */
+  #skills {
+    --c-qa: #15803d;
+    --c-swe: #b91c1c;
+    --c-ai: #1d4ed8;
+    --on-colour: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    #skills {
+      --c-qa: #4ade80;
+      --c-swe: #f87171;
+      --c-ai: #60a5fa;
+      --on-colour: #0f1115;
+    }
+  }
+
+  .skill-filter {
+    display: none;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  :global(.js) .skill-filter {
+    display: flex;
+  }
+
+  .chip {
+    --colour: var(--color-text);
+    border: 1px solid var(--color-border);
+    border-radius: 9999px;
+    padding: 0.4rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition:
+      background-color 0.2s,
+      border-color 0.2s,
+      color 0.2s;
+  }
+  .chip[data-discipline='qa'] {
+    --colour: var(--c-qa);
+  }
+  .chip[data-discipline='swe'] {
+    --colour: var(--c-swe);
+  }
+  .chip[data-discipline='ai'] {
+    --colour: var(--c-ai);
+  }
+  .chip:hover {
+    border-color: var(--colour);
+  }
+  .chip[aria-pressed='true'] {
+    background: var(--colour);
+    border-color: var(--colour);
+    color: var(--on-colour);
+  }
+  .chip:not([data-discipline])[aria-pressed='true'] {
+    --on-colour: var(--color-bg);
+  }
+
+  .skill-pool {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .skill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid var(--color-border);
+    border-radius: 9999px;
+    padding: 0.25rem 0.85rem;
+    font-size: 0.9rem;
+    transition:
+      opacity 0.25s,
+      border-color 0.25s,
+      background-color 0.25s;
+  }
+  .dots {
+    display: inline-flex;
+    gap: 3px;
+  }
+  .dot {
+    /* Never squeezed by the pill's flex layout: every dot is the same size. */
+    flex: none;
+    width: 7px;
+    height: 7px;
+    border-radius: 9999px;
+    background: var(--color-muted);
+  }
+  .dot[data-discipline='qa'] {
+    background: var(--c-qa);
+  }
+  .dot[data-discipline='swe'] {
+    background: var(--c-swe);
+  }
+  .dot[data-discipline='ai'] {
+    background: var(--c-ai);
+  }
+
+  /* A filter is on: skills in it take its colour, the rest fade back. */
+  .skill-pool[data-filter='qa'] .skill:not([data-qa]),
+  .skill-pool[data-filter='swe'] .skill:not([data-swe]),
+  .skill-pool[data-filter='ai'] .skill:not([data-ai]) {
+    opacity: 0.3;
+  }
+  .skill-pool[data-filter='qa'] .skill[data-qa],
+  .skill-pool[data-filter='swe'] .skill[data-swe],
+  .skill-pool[data-filter='ai'] .skill[data-ai] {
+    border-color: var(--hl-colour);
+    background: color-mix(in srgb, var(--hl-colour) 14%, transparent);
+  }
+  .skill-pool[data-filter='qa'] {
+    --hl-colour: var(--c-qa);
+  }
+  .skill-pool[data-filter='swe'] {
+    --hl-colour: var(--c-swe);
+  }
+  .skill-pool[data-filter='ai'] {
+    --hl-colour: var(--c-ai);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .chip,
+    .skill {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  // The filter: one button is pressed at a time; pressing the pressed one goes back to "All".
+  const pool = document.querySelector<HTMLElement>('[data-skill-pool]');
+  const buttons = document.querySelectorAll<HTMLButtonElement>('[data-filter-button]');
+  const status = document.querySelector<HTMLElement>('[data-skill-status]');
+
+  function apply(filter: string) {
+    if (!pool) return;
+    pool.dataset.filter = filter;
+    for (const button of buttons) {
+      button.setAttribute('aria-pressed', String(button.dataset.filterButton === filter));
+    }
+    const total = pool.children.length;
+    const shown = filter === 'all' ? total : pool.querySelectorAll(`[data-${filter}]`).length;
+    if (status) {
+      const label = document.querySelector(`[data-filter-button="${filter}"]`)?.textContent?.trim();
+      status.textContent =
+        filter === 'all'
+          ? `Showing all ${total} skills`
+          : `${shown} of ${total} skills highlighted for ${label}`;
+    }
+  }
+
+  for (const button of buttons) {
+    button.addEventListener('click', () => {
+      const chosen = button.dataset.filterButton!;
+      apply(pool?.dataset.filter === chosen ? 'all' : chosen);
+    });
+  }
+</script>

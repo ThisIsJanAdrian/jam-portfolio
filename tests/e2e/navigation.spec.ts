@@ -6,7 +6,7 @@ import { settle } from './helpers';
 const sections = [
   ['Projects', 'projects'],
   ['Journey', 'journey'],
-  ['Background', 'background'],
+  ['Skills', 'skills'],
   ['Contact', 'contact'],
 ] as const;
 
