@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { credentials, education, experience } from '../../src/data/profile';
+import { credentials, experience, skills } from '../../src/data/profile';
 
 // Data-driven: the page must render whatever is in the profile data.
 test.beforeEach(async ({ page }) => {
@@ -13,12 +13,30 @@ test('shows every experience entry', async ({ page }) => {
   }
 });
 
-test('shows education and credentials', async ({ page }) => {
-  for (const e of education) {
-    await expect(page.getByRole('heading', { level: 4, name: e.degree })).toBeVisible();
+test('shows every skill and certification', async ({ page }) => {
+  const section = page.locator('#skills');
+  for (const skill of skills) {
+    await expect(
+      section.getByRole('listitem').getByText(skill.name, { exact: false }).first(),
+    ).toBeAttached();
   }
   for (const c of credentials) {
-    await expect(page.getByRole('heading', { level: 4, name: c.name })).toBeVisible();
+    await expect(section.getByRole('heading', { level: 4, name: c.name })).toBeAttached();
+    await expect(section.getByText(c.issuer, { exact: true }).first()).toBeAttached();
+  }
+});
+
+test('a certification links out only when it has a verify URL', async ({ page }) => {
+  const cards = page.locator('#skills h4');
+  for (const c of credentials) {
+    const card = cards.filter({ hasText: c.name }).locator('xpath=..');
+    const verify = card.getByRole('link', { name: /Verify/ });
+    if (c.url) {
+      await expect(verify).toHaveAttribute('href', c.url);
+      await expect(verify).toHaveAttribute('target', '_blank');
+    } else {
+      await expect(verify).toHaveCount(0);
+    }
   }
 });
 

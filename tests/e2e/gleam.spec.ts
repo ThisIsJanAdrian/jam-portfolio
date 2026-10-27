@@ -4,7 +4,7 @@ import { settle } from './helpers';
 // Headings glint when hovered: a band of the accent colour sweeps over the letters. It needs a real
 // pointer and is switched off for reduced motion.
 test.describe('heading glint', () => {
-  const headings = ['#projects h2', '#background h2', '#contact h2', '#hero h1', '#journey h2'];
+  const headings = ['#projects h2', '#skills h2', '#contact h2', '#hero h1', '#journey h2'];
 
   for (const selector of headings) {
     test(`${selector} gleams on hover`, async ({ page }) => {

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   credentials,
+  disciplines,
   education,
   experience,
   formatMonth,
@@ -73,10 +74,26 @@ describe('profile data integrity', () => {
     for (const c of credentials) expect(() => formatMonth(c.issued)).not.toThrow();
   });
 
-  it('has no duplicate skills within a group', () => {
-    for (const group of skills) {
-      const lower = group.items.map((s) => s.toLowerCase());
-      expect(new Set(lower).size).toBe(lower.length);
+  it('has no duplicate skills', () => {
+    const lower = skills.map((s) => s.name.toLowerCase());
+    expect(new Set(lower).size).toBe(lower.length);
+  });
+
+  it('files every skill under at least one known discipline, once each', () => {
+    const known = disciplines.map((d) => d.id);
+    for (const skill of skills) {
+      expect(skill.disciplines.length, skill.name).toBeGreaterThan(0);
+      expect(new Set(skill.disciplines).size, skill.name).toBe(skill.disciplines.length);
+      for (const d of skill.disciplines) expect(known, skill.name).toContain(d);
+    }
+  });
+
+  it('has at least one skill for every discipline', () => {
+    for (const d of disciplines) {
+      expect(
+        skills.some((s) => s.disciplines.includes(d.id)),
+        d.label,
+      ).toBe(true);
     }
   });
 });

@@ -1,5 +1,5 @@
 /**
- * Structured profile data for the hero terminal and Background section: experience, education, credentials, awards, skills.
+ * Structured profile data for the hero terminal and Skills section: experience, education, credentials, awards, skills.
  * Short identity strings (name, role, links) live in `site.ts`.
  *
  * Dates are `YYYY-MM` strings. Use `end: null` for "present".
@@ -26,11 +26,16 @@ export interface Credential {
   name: string;
   issuer: string;
   issued: string;
+  /** Optional link to verify the credential; shows a "Verify" link on its card when set. */
+  url?: string;
 }
 
-export interface SkillGroup {
-  label: string;
-  items: string[];
+export type Discipline = 'qa' | 'swe' | 'ai';
+
+export interface Skill {
+  name: string;
+  /** The disciplines this skill counts towards; the Skills section filters by them. */
+  disciplines: Discipline[];
 }
 
 export const experience: Experience[] = [
@@ -94,19 +99,50 @@ export const bio = {
     'Currently focusing on software quality. Keen on turning ideas into solutions that make life a little lighter.',
 };
 
-export const skills: SkillGroup[] = [
-  {
-    label: 'Languages & frameworks',
-    items: ['Python', 'PHP (Laravel/Blade)', 'JavaScript (React)', 'HTML', 'CSS', 'Embedded C/C++'],
-  },
-  {
-    label: 'Tools & technologies',
-    items: ['Git/GitHub', 'REST APIs', 'MySQL', 'SQLite', 'Supabase', 'Vercel', 'HuggingFace'],
-  },
-  {
-    label: 'Core concepts',
-    items: ['CRUD', 'API integration', 'OOP', 'Data structures & algorithms'],
-  },
+/** The filters of the Skills section, in display order. */
+export const disciplines: { id: Discipline; label: string }[] = [
+  { id: 'qa', label: 'QA' },
+  { id: 'swe', label: 'SWE' },
+  { id: 'ai', label: 'AI' },
+];
+
+/** One pool, grouped by kind (languages, testing, web, AI, tooling, office) in the order listed. */
+export const skills: Skill[] = [
+  { name: 'TypeScript', disciplines: ['qa', 'swe'] },
+  { name: 'JavaScript', disciplines: ['qa', 'swe'] },
+  { name: 'Python', disciplines: ['ai', 'swe'] },
+  { name: 'Java', disciplines: ['qa', 'swe'] },
+  { name: 'PHP', disciplines: ['swe'] },
+  { name: 'HTML/CSS', disciplines: ['swe'] },
+  { name: 'SQL', disciplines: ['qa', 'swe'] },
+  { name: 'React', disciplines: ['swe'] },
+  { name: 'Astro', disciplines: ['swe'] },
+  { name: 'Tailwind CSS', disciplines: ['swe'] },
+  { name: 'Laravel', disciplines: ['swe'] },
+  { name: 'Playwright', disciplines: ['qa'] },
+  { name: 'Selenium WebDriver', disciplines: ['qa'] },
+  { name: 'WebDriverIO', disciplines: ['qa'] },
+  { name: 'TestNG', disciplines: ['qa'] },
+  { name: 'Appium', disciplines: ['qa'] },
+  { name: 'Postman', disciplines: ['qa', 'swe'] },
+  { name: 'Apache JMeter', disciplines: ['qa'] },
+  { name: 'Lighthouse CI', disciplines: ['qa', 'swe'] },
+  { name: 'Claude Code', disciplines: ['qa', 'ai'] },
+  { name: 'ChromaDB', disciplines: ['ai'] },
+  { name: 'Transformers', disciplines: ['ai'] },
+  { name: 'Hugging Face', disciplines: ['ai'] },
+  { name: 'LangChain', disciplines: ['ai'] },
+  { name: 'Ollama', disciplines: ['ai'] },
+  { name: 'Supabase', disciplines: ['swe'] },
+  { name: 'Vercel', disciplines: ['swe'] },
+  { name: 'VS Code', disciplines: ['qa', 'swe', 'ai'] },
+  { name: 'Git', disciplines: ['qa', 'swe', 'ai'] },
+  { name: 'GitHub', disciplines: ['qa', 'swe', 'ai'] },
+  { name: 'GitLab', disciplines: ['qa', 'swe', 'ai'] },
+  { name: 'Maven', disciplines: ['qa', 'swe'] },
+  { name: 'Eclipse', disciplines: ['qa', 'swe'] },
+  { name: 'Microsoft Word', disciplines: ['qa'] },
+  { name: 'Microsoft Excel', disciplines: ['qa'] },
 ];
 
 /** "2026-06" -> "June 2026". Throws on malformed input so bad data fails the build and tests. */
