@@ -4,8 +4,8 @@ import { shortName } from '../../src/utils/names';
 import { settle } from './helpers';
 
 const sections = [
-  ['Journey', 'journey'],
   ['Projects', 'projects'],
+  ['Journey', 'journey'],
   ['Background', 'background'],
   ['Contact', 'contact'],
 ] as const;
