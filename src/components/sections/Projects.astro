@@ -6,29 +6,42 @@ const projects = (await getCollection('projects', ({ data }) => !data.draft)).so
 );
 ---
 
-<section id="projects" data-spy aria-labelledby="projects-title" class="px-6 py-24">
+<!--
+  A simple stack, in the style of bryllim.com/projects: one rounded block holding a row per project,
+  hairline dividers between the rows, the name on the left, a small label (the tech) and one line on
+  what it is beside it, and an arrow. A row lights up softly on hover. Each row is one big link (to
+  the case study for now; point it at the project's own site when there is one).
+-->
+<section id="projects" data-spy aria-labelledby="projects-title" class="px-6 pt-24 pb-8">
   <div class="mx-auto max-w-6xl">
     <h2 id="projects-title" data-reveal class="text-h2">
       Projects
     </h2>
-    <p data-reveal class="mt-3 max-w-2xl text-[var(--color-muted)]">
-      Things I've built across AI, full-stack and mobile.
-    </p>
-    <ul class="reveal-stagger mt-10 grid gap-6 sm:grid-cols-2">
+    <ul class="reveal-stagger mt-10 divide-y divide-[var(--color-border)] overflow-hidden rounded-2xl border border-[var(--color-border)]">
       {projects.map((p) => (
         <li
           data-reveal
-          class="relative flex flex-col rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 transition-shadow focus-within:shadow-lg hover:shadow-lg"
+          class="group relative flex flex-col gap-3 p-6 transition-colors duration-200 focus-within:bg-[var(--color-surface)] hover:bg-[var(--color-surface)] sm:flex-row sm:items-center sm:gap-8 sm:p-7"
         >
-          <h3 class="text-xl font-semibold">
-            {/* Stretched link: the whole card is clickable, with one real link for assistive tech. */}
-            <a href={`/projects/${p.id}`} class="after:absolute after:inset-0 after:rounded-2xl">
+          <h3 class="text-lg font-semibold sm:w-56 sm:shrink-0">
+            {/* Stretched link: the whole row is clickable, with one real link for assistive tech. */}
+            <a href={`/projects/${p.id}`} class="after:absolute after:inset-0">
               {p.data.title}
             </a>
           </h3>
-          <p class="mt-2 flex-1 text-[var(--color-muted)]">{p.data.summary}</p>
-          <p class="tech-tag mt-4">{p.data.stack.join(' · ')}</p>
-          {p.data.award && <p class="mt-3 text-sm font-medium">🏆 {p.data.award}</p>}
+          <div class="min-w-0 flex-1">
+            <p class="tech-tag text-[11px] tracking-wider text-[var(--color-muted)] uppercase">
+              {p.data.stack.join(' · ')}
+            </p>
+            <p class="mt-1.5 text-[var(--color-muted)]">{p.data.summary}</p>
+            {p.data.award && <p class="mt-2 text-sm font-medium">🏆 {p.data.award}</p>}
+          </div>
+          <span
+            aria-hidden="true"
+            class="hidden text-xl text-[var(--color-muted)] transition duration-200 group-hover:translate-x-1 group-hover:text-[var(--color-accent)] group-focus-within:translate-x-1 group-focus-within:text-[var(--color-accent)] sm:block motion-reduce:transition-none"
+          >
+            →
+          </span>
         </li>
       ))}
     </ul>
