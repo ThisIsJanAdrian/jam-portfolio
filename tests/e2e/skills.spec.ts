@@ -1,5 +1,5 @@
 import { expect, test, type Locator } from '@playwright/test';
-import { disciplines, skills } from '../../src/data/profile';
+import { credentials, disciplines, skills } from '../../src/data/profile';
 import { settle } from './helpers';
 
 // The filter of the Skills section: QA (green), SWE (red) and AI (blue) light up the skills that
@@ -98,4 +98,88 @@ test('reduced motion: the fade is immediate', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const first = pill(page, skills[0].name);
   expect(await first.evaluate((n) => getComputedStyle(n).transitionDuration)).toMatch(/^0s/);
+});
+
+const credentialNames = credentials.map((c) => c.name);
+
+test.describe('certification cards', () => {
+  test('the skills sit under a "Stack" heading, before the certifications', async ({ page }) => {
+    const headings = await page.locator('#skills').getByRole('heading').allTextContents();
+    const text = headings.map((h) => h.trim());
+    expect(text.slice(0, 3)).toEqual(['Skills', 'Stack', 'Certifications']);
+    // A linked title also carries a hidden "(opens in a new tab)", so compare how each one starts.
+    credentialNames.forEach((name, i) => expect(text[3 + i].startsWith(name), name).toBe(true));
+    expect(text).toHaveLength(3 + credentialNames.length);
+  });
+
+  test('titles, issuers and dates line up across the cards of a row', async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(isMobile, 'cards are stacked on phones');
+    const rows = await page.locator('#skills h4').evaluateAll((titles) =>
+      titles.map((t) => {
+        const card = t.closest('li')!;
+        const top = card.getBoundingClientRect().top;
+        const paras = [...card.querySelectorAll('p')].map(
+          (p) => p.getBoundingClientRect().top - top,
+        );
+        return { row: Math.round(top), title: t.getBoundingClientRect().height, paras };
+      }),
+    );
+    const byRow = Map.groupBy(rows, (r) => r.row);
+    for (const [row, cards] of byRow) {
+      for (const card of cards) {
+        expect(card.paras, `row ${row}: issuer and date start at the same height`).toEqual(
+          cards[0].paras,
+        );
+      }
+    }
+  });
+
+  test('hovering a card underlines the title and its arrow, and the arrow stays put', async ({
+    page,
+  }) => {
+    const canHover = await page.evaluate(() => matchMedia('(hover: hover)').matches);
+    test.skip(!canHover, 'no hover on touch devices');
+    const link = page.locator('#skills h4 a').first();
+    await link.evaluate((el) => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
+    await settle(page);
+    const arrow = link.locator('[aria-hidden="true"]');
+    const before = await arrow.boundingBox();
+    await link.hover();
+    await page.waitForTimeout(400);
+    expect(await link.evaluate((el) => getComputedStyle(el).textDecorationLine)).toBe('underline');
+    // The arrow is plain text inside the link, so the underline runs under it as well.
+    expect(await arrow.evaluate((el) => getComputedStyle(el).display)).toBe('inline');
+    const after = await arrow.boundingBox();
+    expect(Math.abs(after!.x - before!.x) + Math.abs(after!.y - before!.y)).toBeLessThan(0.5);
+  });
+});
+
+test('after a click the card goes back to its normal colour (focus from a mouse click does not keep it lit)', async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(isMobile, 'hover');
+  // The link opens another tab; stop that so the page under test stays put.
+  await page.route('**/*', (route) => route.continue());
+  const link = page.locator('#skills h4 a').first();
+  await link.evaluate((el) => {
+    el.removeAttribute('target');
+    el.addEventListener('click', (e) => e.preventDefault());
+    el.scrollIntoView({ block: 'center', behavior: 'instant' });
+  });
+  await settle(page);
+  const card = link.locator('xpath=ancestor::li');
+  const idle = await card.evaluate((el) => getComputedStyle(el).backgroundColor);
+  await link.click();
+  await page.mouse.move(2, 2);
+  await page.waitForTimeout(400);
+  expect(
+    await link.evaluate((el) => el === document.activeElement),
+    'the link kept the focus',
+  ).toBe(true);
+  expect(await card.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe(idle);
+  expect(await link.evaluate((el) => getComputedStyle(el).textDecorationLine)).toBe('none');
 });

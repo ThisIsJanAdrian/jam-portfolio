@@ -70,11 +70,19 @@ export const credentials: Credential[] = [
     name: 'Quality Assurance Test Analyst',
     issuer: 'Skillsoft',
     issued: '2026-10',
+    url: 'https://skillsoft.digitalbadges-eu.skillsoft.com/ddb06b43-aabc-4c4e-92fa-5a954937c1ed#acc.noigFa9t',
   },
   {
     name: 'Retrieval Augmented Generation (RAG)',
     issuer: 'DeepLearning.AI',
     issued: '2026-03',
+    url: 'https://coursera.org/share/283f6f30f4838a3e78f0247c8b60a5d6',
+  },
+  {
+    name: 'Introduction to AI',
+    issuer: 'Google',
+    issued: '2025-11',
+    url: 'https://coursera.org/share/ec670a93e6aec69c3e32d21391370ac4',
   },
 ];
 
@@ -122,7 +130,7 @@ export const skills: Skill[] = [
   { name: 'Playwright', disciplines: ['qa'] },
   { name: 'Selenium WebDriver', disciplines: ['qa'] },
   { name: 'WebDriverIO', disciplines: ['qa'] },
-  { name: 'TestNG', disciplines: ['qa'] },
+  { name: 'Mocha', disciplines: ['qa'] },
   { name: 'Appium', disciplines: ['qa'] },
   { name: 'Postman', disciplines: ['qa', 'swe'] },
   { name: 'Apache JMeter', disciplines: ['qa'] },

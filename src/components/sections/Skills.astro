@@ -18,9 +18,13 @@ const labelOf = (id: string) => disciplines.find((d) => d.id === id)!.label;
       Skills
     </h2>
 
+    <h3 data-reveal class="mt-8 text-xl font-semibold">
+      Stack
+    </h3>
+
     <div
       data-reveal
-      class="skill-filter mt-8"
+      class="skill-filter mt-4"
       role="group"
       aria-label="Filter skills by discipline"
     >
@@ -62,23 +66,34 @@ const labelOf = (id: string) => disciplines.find((d) => d.id === id)!.label;
       {certifications.map((c) => (
         <li
           data-reveal
-          class="flex flex-col rounded-2xl border border-[var(--color-border)] p-6 transition-colors duration-200 hover:bg-[var(--color-surface)]"
+          class="group relative flex flex-col rounded-2xl border border-[var(--color-border)] p-6 transition-colors duration-200 has-[:focus-visible]:bg-[var(--color-surface)] hover:bg-[var(--color-surface)]"
         >
-          <h4 class="font-semibold">{c.name}</h4>
-          <p class="mt-1 text-[var(--color-muted)]">{c.issuer}</p>
-          <p class="metric-badge mt-3 text-sm text-[var(--color-muted)]">
+          <h4 class="font-semibold leading-snug sm:min-h-[2lh]">
+            {c.url ? (
+              /* Stretched link: the whole card is clickable, with one real link for assistive tech. */
+              <a
+                href={c.url}
+                class="after:absolute after:inset-0 group-hover:underline group-has-[:focus-visible]:underline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {c.name.slice(0, c.name.lastIndexOf(' ') + 1)}
+                {/* The last word and the arrow never part: the arrow can't wrap onto a line alone. */}
+                <span class="whitespace-nowrap">
+                  {c.name.slice(c.name.lastIndexOf(' ') + 1)}
+                  <span aria-hidden="true" class="motion-reduce:transition-none">
+                    &nbsp;&#8599;
+                  </span>
+                </span>
+              </a>
+            ) : (
+              c.name
+            )}
+          </h4>
+          <p class="mt-5 text-[var(--color-muted)]">{c.issuer}</p>
+          <p class="metric-badge mt-1 text-sm text-[var(--color-muted)]">
             Issued {formatMonth(c.issued)}
           </p>
-          {c.url && (
-            <a
-              href={c.url}
-              class="mt-4 text-sm font-medium text-[var(--color-accent)] hover:underline"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Verify →
-            </a>
-          )}
         </li>
       ))}
     </ul>
