@@ -4,20 +4,20 @@ _Template. Fill in or adjust each section as the site grows._
 
 ## 1. Scope
 
-**In scope:** all public pages, navigation, contact form, case-study rendering, accessibility, performance, SEO metadata, cross-browser and mobile layout.
+**In scope:** all public pages, navigation, the email link, case-study rendering, accessibility, performance, SEO metadata, cross-browser and mobile layout.
 
-**Out of scope:** the third-party contact-form service's internals, hosting-provider infrastructure, load testing.
+**Out of scope:** hosting-provider infrastructure, load testing.
 
 ## 2. Risks and priorities
 
-| Risk                                      | Impact | Likelihood | Mitigation                                |
-| ----------------------------------------- | ------ | ---------- | ----------------------------------------- |
-| Broken links or 404s on key pages         | High   | Medium     | E2E link crawler (`navigation.spec.ts`)   |
-| Contact form fails or accepts bad input   | High   | Medium     | Unit tests + E2E (`contact-form.spec.ts`) |
-| Accessibility regressions                 | High   | Medium     | axe on every page, Lighthouse budget      |
-| Slow load / poor Core Web Vitals          | Medium | Low        | Lighthouse CI budgets                     |
-| Layout broken in Safari / Firefox / phone | Medium | Medium     | 4 Playwright projects                     |
-| Malformed case study published            | Medium | Low        | Zod content schema fails the build        |
+| Risk                                       | Impact | Likelihood | Mitigation                              |
+| ------------------------------------------ | ------ | ---------- | --------------------------------------- |
+| Broken links or 404s on key pages          | High   | Medium     | E2E link crawler (`navigation.spec.ts`) |
+| The email button points to the wrong place | High   | Low        | E2E (`contact.spec.ts`)                 |
+| Accessibility regressions                  | High   | Medium     | axe on every page, Lighthouse budget    |
+| Slow load / poor Core Web Vitals           | Medium | Low        | Lighthouse CI budgets                   |
+| Layout broken in Safari / Firefox / phone  | Medium | Medium     | 4 Playwright projects                   |
+| Malformed case study published             | Medium | Low        | Zod content schema fails the build      |
 
 ## 3. Test levels
 
@@ -46,7 +46,7 @@ _Template. Fill in or adjust each section as the site grows._
 ## 6. Manual exploratory charters (to be run and logged)
 
 1. Keyboard-only navigation of every page: can everything be reached and operated, and is focus always visible?
-2. Screen reader pass (NVDA + Firefox/Chrome) on the contact form.
+2. Screen reader pass (NVDA + Firefox/Chrome) on the Skills filter.
 3. 200% zoom and 320px-wide viewport: any clipped or overlapping content?
 4. Dark mode and forced-colors mode: any unreadable text?
 5. Slow 3G and offline: does the site degrade gracefully?

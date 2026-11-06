@@ -38,18 +38,17 @@ test.describe('links to other websites', () => {
     });
   }
 
-  test('the contact links (GitHub, LinkedIn) are among them; the email address is not', async ({
+  test('the social links (GitHub, LinkedIn) are among them; the email address is not', async ({
     page,
   }) => {
     await page.goto('/');
     for (const name of [/github/i, /linkedin/i]) {
-      // Scoped to the Contact section: the hero terminal links to them as well.
-      await expect(page.locator('#contact').getByRole('link', { name })).toHaveAttribute(
+      await expect(page.locator('#hero').getByRole('link', { name }).first()).toHaveAttribute(
         'target',
         '_blank',
       );
     }
-    // Every email link (the hero terminal's and the Contact section's) stays in this tab.
+    // Every email link (the hero terminal's and the Contact button) stays in this tab.
     const mailLinks = await page.locator('a[href^="mailto:"]').all();
     expect(mailLinks.length).toBeGreaterThanOrEqual(2);
     for (const link of mailLinks) {
@@ -111,6 +110,8 @@ test.describe('links to other websites', () => {
     page,
     context,
   }) => {
+    // The hero terminal floats; with reduced motion it holds still, so it can be clicked.
+    await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/');
     await page.route('https://github.com/**', (route) =>
       route.fulfill({ status: 200, contentType: 'text/html', body: '<title>stub</title>' }),
@@ -119,8 +120,9 @@ test.describe('links to other websites', () => {
     const [newTab] = await Promise.all([
       context.waitForEvent('page'),
       page
-        .locator('#contact')
+        .locator('#hero')
         .getByRole('link', { name: /github/i })
+        .first()
         .click(),
     ]);
 
