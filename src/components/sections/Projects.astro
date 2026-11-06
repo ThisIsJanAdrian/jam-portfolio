@@ -21,7 +21,7 @@ const projects = (await getCollection('projects', ({ data }) => !data.draft)).so
       {projects.map((p) => (
         <li
           data-reveal
-          class="group relative flex flex-col gap-3 p-6 transition-colors duration-200 focus-within:bg-[var(--color-surface)] hover:bg-[var(--color-surface)] sm:flex-row sm:items-center sm:gap-8 sm:p-7"
+          class="group relative flex flex-col gap-3 p-6 transition-colors duration-200 has-[:focus-visible]:bg-[var(--color-surface)] hover:bg-[var(--color-surface)] sm:flex-row sm:items-center sm:gap-8 sm:p-7"
         >
           <h3 class="text-lg font-semibold sm:w-56 sm:shrink-0">
             {/* Stretched link: the whole row is clickable, with one real link for assistive tech. */}
@@ -38,7 +38,7 @@ const projects = (await getCollection('projects', ({ data }) => !data.draft)).so
           </div>
           <span
             aria-hidden="true"
-            class="hidden text-xl text-[var(--color-muted)] transition duration-200 group-hover:translate-x-1 group-hover:text-[var(--color-accent)] group-focus-within:translate-x-1 group-focus-within:text-[var(--color-accent)] sm:block motion-reduce:transition-none"
+            class="hidden text-xl text-[var(--color-muted)] transition duration-200 group-hover:translate-x-1 group-hover:text-[var(--color-accent)] group-has-[:focus-visible]:translate-x-1 group-has-[:focus-visible]:text-[var(--color-accent)] sm:block motion-reduce:transition-none"
           >
             →
           </span>

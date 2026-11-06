@@ -65,6 +65,18 @@ test.describe('heading glint', () => {
     );
   });
 
+  test('the certification cards do not gleam: they have their own hover', async ({ page }) => {
+    await page.goto('/');
+    const canHover = await page.evaluate(() => matchMedia('(hover: hover)').matches);
+    test.skip(!canHover, 'no hover on touch devices');
+    const title = page.locator('#skills h4').first();
+    await title.evaluate((el) => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
+    await settle(page);
+    await title.hover();
+    await page.waitForTimeout(300);
+    expect(await title.evaluate((el) => getComputedStyle(el).backgroundClip)).not.toContain('text');
+  });
+
   test.describe('reduced motion', () => {
     test.use({ reducedMotion: 'reduce' });
 

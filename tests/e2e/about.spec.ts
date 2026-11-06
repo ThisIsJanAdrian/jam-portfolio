@@ -26,18 +26,18 @@ test('shows every skill and certification', async ({ page }) => {
   }
 });
 
-test('a certification links out only when it has a verify URL', async ({ page }) => {
-  const cards = page.locator('#skills h4');
+test('a certification title links out only when it has a verify URL', async ({ page }) => {
   for (const c of credentials) {
-    const card = cards.filter({ hasText: c.name }).locator('xpath=..');
-    const verify = card.getByRole('link', { name: /Verify/ });
+    const title = page.locator('#skills h4').filter({ hasText: c.name });
+    const link = title.getByRole('link', { name: c.name });
     if (c.url) {
-      await expect(verify).toHaveAttribute('href', c.url);
-      await expect(verify).toHaveAttribute('target', '_blank');
+      await expect(link).toHaveAttribute('href', c.url);
+      await expect(link).toHaveAttribute('target', '_blank');
     } else {
-      await expect(verify).toHaveCount(0);
+      await expect(link).toHaveCount(0);
     }
   }
+  await expect(page.getByText('Verify', { exact: false })).toHaveCount(0);
 });
 
 test('an open-ended role is labelled "Present"', async ({ page }) => {
