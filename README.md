@@ -39,7 +39,7 @@ src/
   styles/       Tailwind import and design tokens
 tests/
   unit/         Vitest component and logic tests
-  e2e/          Playwright specs (smoke, navigation, contact form, a11y)
+  e2e/          Playwright specs (smoke, navigation, skills, a11y)
 .github/workflows/ci.yml   CI pipeline
 ```
 
@@ -57,5 +57,4 @@ See [TEST_PLAN.md](./TEST_PLAN.md) for the test strategy.
 
 - [ ] Set `site` in `astro.config.mjs` to your real domain.
 - [ ] Replace "Your Name" and the placeholder copy (Header, Footer, pages, `<title>`s).
-- [ ] Connect the contact form to a real endpoint (see the TODO in `src/components/ContactForm.tsx`).
 - [ ] Replace the sample case study with real ones.
