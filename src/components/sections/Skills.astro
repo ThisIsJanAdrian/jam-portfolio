@@ -66,7 +66,7 @@ const labelOf = (id: string) => disciplines.find((d) => d.id === id)!.label;
       {certifications.map((c) => (
         <li
           data-reveal
-          class="group relative flex flex-col rounded-2xl border border-[var(--color-border)] p-6 transition-colors duration-200 has-[:focus-visible]:bg-[var(--color-surface)] hover:bg-[var(--color-surface)]"
+          class="cert group relative flex flex-col rounded-2xl border border-[var(--color-border)] p-6"
         >
           <h4 class="font-semibold leading-snug sm:min-h-[2lh]">
             {c.url ? (
@@ -173,11 +173,13 @@ const labelOf = (id: string) => disciplines.find((d) => d.id === id)!.label;
     border: 1px solid var(--color-border);
     border-radius: 9999px;
     padding: 0.25rem 0.85rem;
-    font-size: 0.9rem;
+    font-size: 1rem;
     transition:
       opacity 0.25s,
       border-color 0.25s,
-      background-color 0.25s;
+      background-color 0.25s,
+      transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+      box-shadow 0.25s;
   }
   .dots {
     display: inline-flex;
@@ -223,9 +225,44 @@ const labelOf = (id: string) => disciplines.find((d) => d.id === id)!.label;
     --hl-colour: var(--c-ai);
   }
 
+  /* A certification card: the same hop and outline on hover as the skills, with the same springy landing. */
+  .cert {
+    transition:
+      border-color 0.25s,
+      transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+      box-shadow 0.25s;
+  }
+  /* The fill never changes (the text stays as readable as it is); the outline lights up instead. */
+  .cert:hover,
+  .cert:has(:focus-visible) {
+    border-color: var(--color-muted);
+  }
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .cert:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 18px -8px color-mix(in srgb, var(--color-text) 35%, transparent);
+    }
+  }
+
+  /* Hover: a skill that is on lifts a little and gets a soft shadow. One that a filter has faded
+     back does nothing: only "All" (everything is on) or the skills in the chosen filter react. */
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .skill-pool[data-filter='all'] .skill:hover,
+    .skill-pool[data-filter='qa'] .skill[data-qa]:hover,
+    .skill-pool[data-filter='swe'] .skill[data-swe]:hover,
+    .skill-pool[data-filter='ai'] .skill[data-ai]:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 14px -6px color-mix(in srgb, var(--color-text) 35%, transparent);
+    }
+    .skill-pool[data-filter='all'] .skill:hover {
+      border-color: var(--color-muted);
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .chip,
-    .skill {
+    .skill,
+    .cert {
       transition: none;
     }
   }
