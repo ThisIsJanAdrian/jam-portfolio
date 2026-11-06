@@ -137,7 +137,7 @@ test.describe('certification cards', () => {
     }
   });
 
-  test('hovering a card underlines the title and its arrow, and the arrow stays put', async ({
+  test('hovering a card underlines the title and its arrow, and the arrow stays put on the title', async ({
     page,
   }) => {
     const canHover = await page.evaluate(() => matchMedia('(hover: hover)').matches);
@@ -146,14 +146,19 @@ test.describe('certification cards', () => {
     await link.evaluate((el) => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
     await settle(page);
     const arrow = link.locator('[aria-hidden="true"]');
-    const before = await arrow.boundingBox();
+    // Where the arrow sits on its title (the whole card hops, so measure against the title).
+    const offset = async () => {
+      const [a, l] = [await arrow.boundingBox(), await link.boundingBox()];
+      return { x: a!.x - l!.x, y: a!.y - l!.y };
+    };
+    const before = await offset();
     await link.hover();
     await page.waitForTimeout(400);
     expect(await link.evaluate((el) => getComputedStyle(el).textDecorationLine)).toBe('underline');
     // The arrow is plain text inside the link, so the underline runs under it as well.
     expect(await arrow.evaluate((el) => getComputedStyle(el).display)).toBe('inline');
-    const after = await arrow.boundingBox();
-    expect(Math.abs(after!.x - before!.x) + Math.abs(after!.y - before!.y)).toBeLessThan(0.5);
+    const after = await offset();
+    expect(Math.abs(after.x - before.x) + Math.abs(after.y - before.y)).toBeLessThan(0.5);
   });
 });
 
@@ -182,4 +187,66 @@ test('after a click the card goes back to its normal colour (focus from a mouse 
   ).toBe(true);
   expect(await card.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe(idle);
   expect(await link.evaluate((el) => getComputedStyle(el).textDecorationLine)).toBe('none');
+});
+
+test.describe('skill hover', () => {
+  const lift = (page: import('@playwright/test').Page, name: string) =>
+    pill(page, name).evaluate((n) => new DOMMatrix(getComputedStyle(n).transform).m42);
+
+  test.beforeEach(async ({ page }) => {
+    const canHover = await page.evaluate(() => matchMedia('(hover: hover)').matches);
+    test.skip(!canHover, 'no hover on touch devices');
+    await pill(page, 'Python').evaluate((n) =>
+      n.scrollIntoView({ block: 'center', behavior: 'instant' }),
+    );
+    await settle(page);
+  });
+
+  test('a skill that is on lifts when hovered', async ({ page }) => {
+    await pill(page, 'Python').hover();
+    await page.waitForTimeout(500);
+    expect(await lift(page, 'Python')).toBeLessThan(-1);
+  });
+
+  test('a skill that the filter faded back does not react', async ({ page }) => {
+    await filterButton(page, 'QA').click();
+    await settle(page);
+    await pill(page, 'React').hover(); // React is SWE only: faded under QA
+    await page.waitForTimeout(500);
+    expect(await lift(page, 'React')).toBe(0);
+    await pill(page, 'Playwright').hover(); // a QA skill still reacts
+    await page.waitForTimeout(500);
+    expect(await lift(page, 'Playwright')).toBeLessThan(-1);
+  });
+
+  test('the pills use a slightly larger font than before', async ({ page }) => {
+    const size = await pill(page, 'Python').evaluate((n) =>
+      parseFloat(getComputedStyle(n).fontSize),
+    );
+    expect(size).toBeGreaterThanOrEqual(16);
+  });
+});
+
+test('a certification card hops and lights its outline on hover, like the skills', async ({
+  page,
+}) => {
+  const canHover = await page.evaluate(() => matchMedia('(hover: hover)').matches);
+  test.skip(!canHover, 'no hover on touch devices');
+  const card = page.locator('#skills h4 a').first().locator('xpath=ancestor::li');
+  await card.evaluate((n) => n.scrollIntoView({ block: 'center', behavior: 'instant' }));
+  await settle(page);
+  const lift = () => card.evaluate((n) => new DOMMatrix(getComputedStyle(n).transform).m42);
+  const look = () =>
+    card.evaluate((n) => {
+      const style = getComputedStyle(n);
+      return { fill: style.backgroundColor, outline: style.borderTopColor };
+    });
+  expect(await lift()).toBe(0);
+  const idle = await look();
+  await card.hover();
+  await page.waitForTimeout(500);
+  expect(await lift()).toBeLessThan(-1);
+  const hovered = await look();
+  expect(hovered.fill, 'the fill does not change, so the text stays readable').toBe(idle.fill);
+  expect(hovered.outline, 'the outline lights up').not.toBe(idle.outline);
 });
