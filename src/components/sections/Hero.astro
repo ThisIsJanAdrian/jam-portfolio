@@ -226,10 +226,10 @@ const nameEm = displayName.length * NAME_EM_PER_CHARACTER;
   const roles: string[] = JSON.parse(status?.dataset.roles ?? '[]');
 
   if (status && text && cursor && roles.length) {
-    const TYPE_MS = 60; // per letter typed
-    const ERASE_MS = 30; // per letter backspaced (faster than typing)
-    const HOLD_MS = 2200; // a finished role stays this long
-    const GAP_MS = 350; // pause on the empty line between roles
+    const TYPE_MS = 35; // per letter typed
+    const ERASE_MS = 25; // per letter backspaced (faster than typing)
+    const HOLD_MS = 1800; // a finished role stays this long
+    const GAP_MS = 200; // pause on the empty line between roles
 
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     let timer = 0;
