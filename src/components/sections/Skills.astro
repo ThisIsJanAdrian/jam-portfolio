@@ -12,7 +12,7 @@ const labelOf = (id: string) => disciplines.find((d) => d.id === id)!.label;
   towards it light up in that colour while the rest fade back; pick it again, or "All", for the
   plain pool. Without JavaScript the buttons are hidden and the pool is simply all of it.
 -->
-<section id="skills" data-spy aria-labelledby="skills-title" class="px-6 pt-24 pb-8">
+<section id="skills" data-spy aria-labelledby="skills-title" class="px-6 pt-16 pb-8 sm:pt-24">
   <div class="mx-auto max-w-6xl">
     <h2 id="skills-title" data-reveal class="text-h2">
       Skills
@@ -59,14 +59,14 @@ const labelOf = (id: string) => disciplines.find((d) => d.id === id)!.label;
       ))}
     </ul>
 
-    <h3 data-reveal class="mt-16 text-xl font-semibold">
+    <h3 data-reveal class="mt-10 text-xl font-semibold sm:mt-16">
       Certifications
     </h3>
-    <ul class="reveal-stagger mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <ul class="reveal-stagger mt-4 grid gap-3 sm:mt-6 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
       {certifications.map((c) => (
         <li
           data-reveal
-          class="cert group relative flex flex-col rounded-2xl border border-[var(--color-border)] p-6"
+          class="hover-card group relative flex flex-col rounded-2xl border border-[var(--color-border)] p-4 sm:p-6"
         >
           <h4 class="font-semibold leading-snug sm:min-h-[2lh]">
             {c.url ? (
@@ -90,10 +90,13 @@ const labelOf = (id: string) => disciplines.find((d) => d.id === id)!.label;
               c.name
             )}
           </h4>
-          <p class="mt-5 text-[var(--color-muted)]">{c.issuer}</p>
-          <p class="metric-badge mt-1 text-sm text-[var(--color-muted)]">
-            Issued {formatMonth(c.issued)}
-          </p>
+          {/* On a phone the issuer and the date share a line, to keep the cards short. */}
+          <div class="mt-1.5 flex flex-wrap items-baseline justify-between gap-x-3 sm:mt-0 sm:block">
+            <p class="text-[var(--color-muted)] sm:mt-5">{c.issuer}</p>
+            <p class="metric-badge text-sm text-[var(--color-muted)] sm:mt-1">
+              Issued {formatMonth(c.issued)}
+            </p>
+          </div>
         </li>
       ))}
     </ul>
@@ -109,8 +112,14 @@ const labelOf = (id: string) => disciplines.find((d) => d.id === id)!.label;
     --c-ai: #1d4ed8;
     --on-colour: #ffffff;
   }
+  :global(:root[data-theme='dark']) #skills {
+    --c-qa: #4ade80;
+    --c-swe: #f87171;
+    --c-ai: #60a5fa;
+    --on-colour: #0f1115;
+  }
   @media (prefers-color-scheme: dark) {
-    #skills {
+    :global(:root:not([data-theme='light'])) #skills {
       --c-qa: #4ade80;
       --c-swe: #f87171;
       --c-ai: #60a5fa;
@@ -225,25 +234,6 @@ const labelOf = (id: string) => disciplines.find((d) => d.id === id)!.label;
     --hl-colour: var(--c-ai);
   }
 
-  /* A certification card: the same hop and outline on hover as the skills, with the same springy landing. */
-  .cert {
-    transition:
-      border-color 0.25s,
-      transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
-      box-shadow 0.25s;
-  }
-  /* The fill never changes (the text stays as readable as it is); the outline lights up instead. */
-  .cert:hover,
-  .cert:has(:focus-visible) {
-    border-color: var(--color-muted);
-  }
-  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
-    .cert:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 18px -8px color-mix(in srgb, var(--color-text) 35%, transparent);
-    }
-  }
-
   /* Hover: a skill that is on lifts a little and gets a soft shadow. One that a filter has faded
      back does nothing: only "All" (everything is on) or the skills in the chosen filter react. */
   @media (hover: hover) and (prefers-reduced-motion: no-preference) {
@@ -259,10 +249,35 @@ const labelOf = (id: string) => disciplines.find((d) => d.id === id)!.label;
     }
   }
 
+  /* Phones: smaller, tighter pills and buttons, so the whole pool fits on one screen. */
+  @media (max-width: 639px) {
+    .skill-filter {
+      gap: 0.35rem;
+    }
+    .chip {
+      padding: 0.25rem 0.75rem;
+      font-size: 0.8rem;
+    }
+    .skill-pool {
+      gap: 0.3rem;
+    }
+    .skill {
+      gap: 0.35rem;
+      padding: 0.1rem 0.6rem;
+      font-size: 0.8rem;
+    }
+    .dots {
+      gap: 2px;
+    }
+    .dot {
+      width: 5px;
+      height: 5px;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .chip,
-    .skill,
-    .cert {
+    .skill {
       transition: none;
     }
   }

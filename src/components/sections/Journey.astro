@@ -4,9 +4,6 @@ import { Image } from 'astro:assets';
 import ExternalLink from '../ExternalLink.astro';
 import { journey } from '../../data/journey';
 
-// One hue per entry for the placeholder backgrounds (a faint tint behind each band).
-const hues = [222, 262, 190, 300, 150];
-
 // Every picture in src/assets/journey/, found by file name so the data only needs 'name.jpg'.
 const pictures = import.meta.glob<{ default: ImageMetadata }>(
   '../../assets/journey/*.{jpg,jpeg,png,webp,avif}',
@@ -42,12 +39,7 @@ const pictureFor = (file?: string) =>
 
     <ol class="journey-list">
       {journey.map((item, i) => (
-        <li
-          class="journey-item"
-          data-journey-item
-          data-side={i % 2 === 0 ? 'left' : 'right'}
-          style={`--hue: ${hues[i % hues.length]}`}
-        >
+        <li class="journey-item" data-journey-item data-side={i % 2 === 0 ? 'left' : 'right'}>
           <div class="journey-bg" aria-hidden="true"></div>
 
           <div class="journey-side">
@@ -164,9 +156,14 @@ const pictureFor = (file?: string) =>
     padding: 4rem var(--edge);
   }
 
+  /* Black barely shows on a dark page, so the shadow is deeper and the glow stronger. */
+  :global(:root[data-theme='dark']) .journey-item {
+    --journey-shadow:
+      0 28px 56px -16px rgb(0 0 0 / 0.75), 0 10px 20px -8px rgb(0 0 0 / 0.5),
+      0 0 72px -20px color-mix(in srgb, var(--color-accent) 55%, transparent);
+  }
   @media (prefers-color-scheme: dark) {
-    .journey-item {
-      /* Black barely shows on a dark page, so the shadow is deeper and the glow stronger. */
+    :global(:root:not([data-theme='light'])) .journey-item {
       --journey-shadow:
         0 28px 56px -16px rgb(0 0 0 / 0.75), 0 10px 20px -8px rgb(0 0 0 / 0.5),
         0 0 72px -20px color-mix(in srgb, var(--color-accent) 55%, transparent);
@@ -339,7 +336,7 @@ const pictureFor = (file?: string) =>
     width: var(--dot-size);
     height: var(--dot-size);
     border-radius: 9999px;
-    border: 2px solid var(--color-accent);
+    border: 2px solid var(--color-dot);
     /* The page colour hides the line behind the dot. */
     background: var(--color-bg);
   }
@@ -351,7 +348,7 @@ const pictureFor = (file?: string) =>
     width: 0.5rem;
     height: 0.5rem;
     border-radius: 9999px;
-    background: var(--color-accent);
+    background: var(--color-dot);
     transform: translate(-50%, -50%);
   }
 
