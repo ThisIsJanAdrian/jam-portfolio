@@ -7,7 +7,6 @@ const sections = [
   ['Projects', 'projects'],
   ['Journey', 'journey'],
   ['Skills', 'skills'],
-  ['Contact', 'contact'],
 ] as const;
 
 test('nav links jump to their sections', async ({ page }) => {
@@ -165,10 +164,10 @@ test('nav works from a case-study page too', async ({ page }) => {
   await page.goto('/projects/personal-blog');
   await page
     .getByRole('navigation', { name: 'Main' })
-    .getByRole('link', { name: 'Contact', exact: true })
+    .getByRole('link', { name: 'Skills', exact: true })
     .click();
-  await expect(page).toHaveURL(/\/#contact$/);
-  await expect(page.locator('#contact')).toBeInViewport();
+  await expect(page).toHaveURL(/\/#skills$/);
+  await expect(page.locator('#skills')).toBeInViewport();
 });
 
 test('skip link moves focus to main content', async ({ page, browserName }) => {
@@ -229,4 +228,28 @@ test.describe('tall screens', () => {
       await expect(nav.locator('[aria-current]')).toHaveCount(1);
     }
   });
+});
+
+// Contact has no nav link (it is only a button at the very end), so at the bottom of the page the
+// last link, Skills, keeps the highlight; scrolling back up moves it again.
+test('at the bottom of the page the last link stays highlighted, and it leaves again when scrolling up', async ({
+  page,
+}) => {
+  await page.goto('/');
+  const nav = page.getByRole('navigation', { name: 'Main' });
+  await page.evaluate(() =>
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'instant' }),
+  );
+  await expect(nav.getByRole('link', { name: 'Skills', exact: true })).toHaveAttribute(
+    'aria-current',
+    'location',
+  );
+  await expect(nav.getByRole('link', { name: 'Contact' })).toHaveCount(0);
+  await page.evaluate(() =>
+    document.querySelector('#projects')!.scrollIntoView({ behavior: 'instant' }),
+  );
+  await expect(nav.getByRole('link', { name: 'Projects', exact: true })).toHaveAttribute(
+    'aria-current',
+    'location',
+  );
 });

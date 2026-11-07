@@ -3,6 +3,9 @@
 /*
  * Design tokens. Restyle the whole site by changing these values.
  * Contrast pairs below are chosen to pass WCAG AA (4.5:1) for body text.
+ * The site is black and white: the "accent" is near-black (white in dark mode), so the nav pill, the
+ * email button and the timeline dots follow the text colour. The only colour left is the skills
+ * filter (green QA, red SWE, blue AI), which needs it to tell the disciplines apart.
  */
 @theme {
   --color-bg: #ffffff;
@@ -10,8 +13,11 @@
   --color-text: #1a1d23;
   --color-muted: #4b5563;
   --color-border: #d9dce1;
-  --color-accent: #1d4ed8;
+  --color-accent: #15171c;
   --color-accent-contrast: #ffffff;
+  --color-pill: #e4e5e8; /* the light gray highlight behind the active nav link */
+  --color-dot: #9b9fa7; /* the timeline dots */
+  --color-glint: #c9ced6; /* a light gray: a shine on the dark letters of the light theme */
 
   /* Font families. The --font-cabinet / --font-sora / --font-jetbrains variables come from the
      `fonts` setting in astro.config.mjs (self-hosted, with size-matched fallbacks). */
@@ -26,17 +32,41 @@
   --text-h2: clamp(1.5rem, 2.5vw, 2rem);
 }
 
-/* Dark mode follows the OS setting. */
+/*
+ * Dark mode follows the OS setting until the visitor uses the toggle in the nav, which sets
+ * data-theme="light" or "dark" on <html> (and remembers it). The two dark blocks hold the same
+ * values: one for the OS setting, one for the toggle.
+ */
+:root[data-theme='light'] {
+  color-scheme: light;
+}
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
     --color-bg: #0f1115;
     --color-surface: #181b21;
     --color-text: #e8eaed;
     --color-muted: #a3a9b3;
     --color-border: #2d323b;
-    --color-accent: #7aa2ff;
+    --color-accent: #f2f3f5;
     --color-accent-contrast: #0f1115;
+    --color-pill: #383b42;
+    --color-dot: #838791;
+    --color-glint: #8f96a3; /* the letters are light here, so a mid gray passes over them as a dim glint */
   }
+}
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --color-bg: #0f1115;
+  --color-surface: #181b21;
+  --color-text: #e8eaed;
+  --color-muted: #a3a9b3;
+  --color-border: #2d323b;
+  --color-accent: #f2f3f5;
+  --color-accent-contrast: #0f1115;
+  --color-pill: #383b42;
+  --color-dot: #838791;
+  --color-glint: #8f96a3;
 }
 
 @layer base {
@@ -230,14 +260,13 @@
  */
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   main :is(h1, h2, h3):not(.sr-only):hover {
-    --glint-color: #c9ced6; /* a light gray: a shine on the dark letters of the light theme */
     background:
       linear-gradient(
           110deg,
           transparent 15%,
-          color-mix(in srgb, var(--glint-color) 55%, transparent) 35%,
-          var(--glint-color) 50%,
-          color-mix(in srgb, var(--glint-color) 55%, transparent) 65%,
+          color-mix(in srgb, var(--color-glint) 55%, transparent) 35%,
+          var(--color-glint) 50%,
+          color-mix(in srgb, var(--color-glint) 55%, transparent) 65%,
           transparent 85%
         )
         no-repeat,
@@ -257,12 +286,6 @@
   }
 }
 
-@media (hover: hover) and (prefers-reduced-motion: no-preference) and (prefers-color-scheme: dark) {
-  main :is(h1, h2, h3):not(.sr-only):hover {
-    --glint-color: #8f96a3; /* the letters are light here, so a mid gray passes over them as a dim glint */
-  }
-}
-
 @keyframes heading-glint {
   from {
     background-position:
@@ -273,5 +296,33 @@
     background-position:
       var(--glint-to, 24em) 0,
       0 0;
+  }
+}
+
+/*
+ * Cards that react to the pointer, shared by the certification cards and the project rows: they hop
+ * a little with a springy landing and a soft shadow, and the outline lights up. The fill never
+ * changes, so the text stays as readable as it is. The outline also lights up for keyboard focus.
+ * The hop itself needs a real pointer and no reduced motion; the outline does not.
+ */
+.hover-card {
+  transition:
+    border-color 0.25s,
+    transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.25s;
+}
+.hover-card:hover,
+.hover-card:has(:focus-visible) {
+  border-color: var(--color-muted);
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .hover-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 18px -8px color-mix(in srgb, var(--color-text) 35%, transparent);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hover-card {
+    transition: none;
   }
 }

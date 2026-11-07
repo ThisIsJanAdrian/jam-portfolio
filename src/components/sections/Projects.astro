@@ -7,23 +7,24 @@ const projects = (await getCollection('projects', ({ data }) => !data.draft)).so
 ---
 
 <!--
-  A simple stack, in the style of bryllim.com/projects: one rounded block holding a row per project,
-  hairline dividers between the rows, the name on the left, a small label (the tech) and one line on
-  what it is beside it, and an arrow. A row lights up softly on hover. Each row is one big link (to
-  the case study for now; point it at the project's own site when there is one).
+  A simple stack, in the style of bryllim.com/projects: a rounded row per project, the name on the
+  left, a small label (the tech) and one line on what it is beside it, and an arrow. A row hops and
+  lights its outline on hover, like the skills and certification cards (.hover-card in global.css).
+  Each row is one big link (to the case study for now; point it at the project's own site when
+  there is one).
 -->
-<section id="projects" data-spy aria-labelledby="projects-title" class="px-6 pt-24 pb-8">
+<section id="projects" data-spy aria-labelledby="projects-title" class="px-6 pt-16 pb-8 sm:pt-24">
   <div class="mx-auto max-w-6xl">
     <h2 id="projects-title" data-reveal class="text-h2">
       Projects
     </h2>
-    <ul class="reveal-stagger mt-10 divide-y divide-[var(--color-border)] overflow-hidden rounded-2xl border border-[var(--color-border)]">
+    <ul class="reveal-stagger mt-6 grid gap-3 sm:mt-10 sm:gap-4">
       {projects.map((p) => (
         <li
           data-reveal
-          class="group relative flex flex-col gap-3 p-6 transition-colors duration-200 has-[:focus-visible]:bg-[var(--color-surface)] hover:bg-[var(--color-surface)] sm:flex-row sm:items-center sm:gap-8 sm:p-7"
+          class="hover-card group relative flex flex-col gap-1.5 rounded-2xl border border-[var(--color-border)] p-4 sm:flex-row sm:items-center sm:gap-8 sm:p-7"
         >
-          <h3 class="text-lg font-semibold sm:w-56 sm:shrink-0">
+          <h3 class="text-base font-semibold sm:w-56 sm:shrink-0 sm:text-lg">
             {/* Stretched link: the whole row is clickable, with one real link for assistive tech. */}
             <a href={`/projects/${p.id}`} class="after:absolute after:inset-0">
               {p.data.title}
@@ -33,12 +34,14 @@ const projects = (await getCollection('projects', ({ data }) => !data.draft)).so
             <p class="tech-tag text-[11px] tracking-wider text-[var(--color-muted)] uppercase">
               {p.data.stack.join(' · ')}
             </p>
-            <p class="mt-1.5 text-[var(--color-muted)]">{p.data.summary}</p>
-            {p.data.award && <p class="mt-2 text-sm font-medium">🏆 {p.data.award}</p>}
+            <p class="mt-1 text-sm text-[var(--color-muted)] sm:mt-1.5 sm:text-base">
+              {p.data.summary}
+            </p>
+            {p.data.award && <p class="mt-1.5 text-sm font-medium sm:mt-2">🏆 {p.data.award}</p>}
           </div>
           <span
             aria-hidden="true"
-            class="hidden text-xl text-[var(--color-muted)] transition duration-200 group-hover:translate-x-1 group-hover:text-[var(--color-accent)] group-has-[:focus-visible]:translate-x-1 group-has-[:focus-visible]:text-[var(--color-accent)] sm:block motion-reduce:transition-none"
+            class="hidden text-xl text-[var(--color-muted)] transition-colors duration-200 group-hover:text-[var(--color-accent)] group-has-[:focus-visible]:text-[var(--color-accent)] sm:block motion-reduce:transition-none"
           >
             →
           </span>

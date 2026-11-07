@@ -33,6 +33,15 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonical} />
+    <!-- The saved light/dark choice, applied before first paint so the page never flashes. -->
+    <script is:inline>
+      try {
+        const saved = localStorage.getItem('theme');
+        if (saved === 'light' || saved === 'dark') document.documentElement.dataset.theme = saved;
+      } catch {
+        // storage can be blocked (private windows): the choice then lasts only for this visit
+      }
+    </script>
     <!--
       Scroll reveal. Inline on purpose: the `js` class must be set before first paint (otherwise
       content would flash), and nothing else depends on a script bundle loading. It does nothing

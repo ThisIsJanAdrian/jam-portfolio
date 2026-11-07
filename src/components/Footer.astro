@@ -1,11 +1,30 @@
 ---
+import ExternalLink from './ExternalLink.astro';
 import { site } from '../data/site';
 
 const year = new Date().getFullYear();
 // One template string on purpose: JSX drops whitespace at line breaks, which once produced "2026Jan".
-const text = `© ${year} ${site.name}. Built with Astro and tested with Playwright.`;
+const text = `© ${year} ${site.name}.`;
+
+// GitHub and LinkedIn open in a new tab (ExternalLink); the email opens the mail app.
+const linkClass =
+  'rounded underline-offset-4 transition-colors duration-200 hover:text-[var(--color-text)] hover:underline';
 ---
 
 <footer class="border-t border-[var(--color-border)] text-[var(--color-muted)]">
-  <div class="mx-auto max-w-6xl px-6 py-8 text-sm">{text}</div>
+  <div class="mx-auto flex max-w-6xl flex-col gap-3 px-6 py-8 text-sm sm:flex-row sm:items-center sm:justify-between">
+    <p>{text}</p>
+    <ul class="flex items-center gap-5" aria-label="Elsewhere">
+      <li>
+        <ExternalLink href={site.links.github} class={linkClass}>
+          GitHub
+        </ExternalLink>
+      </li>
+      <li>
+        <ExternalLink href={site.links.linkedin} class={linkClass}>
+          LinkedIn
+        </ExternalLink>
+      </li>
+    </ul>
+  </div>
 </footer>

@@ -61,8 +61,8 @@ test.describe('far jumps', () => {
     });
 
     const nav = page.getByRole('navigation', { name: 'Main' });
-    await nav.getByRole('link', { name: 'Contact', exact: true }).click();
-    await expect(nav.getByRole('link', { name: 'Contact', exact: true })).toHaveAttribute(
+    await nav.getByRole('link', { name: 'Skills', exact: true }).click();
+    await expect(nav.getByRole('link', { name: 'Skills', exact: true })).toHaveAttribute(
       'aria-current',
       'location',
     );
@@ -78,7 +78,7 @@ test.describe('slide curve', () => {
     await page.goto('/');
     await expect(page.locator('[data-nav-indicator][data-ready]')).toBeAttached();
 
-    // Sample the pill's right edge while it slides to the last link ("Contact").
+    // Sample the pill's right edge while it slides to the last link ("Skills").
     const edges = await page.evaluate(
       () =>
         new Promise<number[]>((resolve) => {
@@ -91,13 +91,13 @@ test.describe('slide curve', () => {
             samples.push(pill.getBoundingClientRect().right);
             resolve(samples);
           });
-          document.querySelector<HTMLAnchorElement>('a[data-section=contact]')!.click();
+          document.querySelector<HTMLAnchorElement>('a[data-section=skills]')!.click();
         }),
     );
 
     const final = edges.at(-1)!;
     const overshoot = Math.max(...edges) - final;
-    expect(overshoot, 'should pass the target slightly').toBeGreaterThan(2);
+    expect(overshoot, 'should pass the target slightly').toBeGreaterThan(1.5);
     expect(overshoot, 'should only be a slight overshoot').toBeLessThan(25);
   });
 

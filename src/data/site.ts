@@ -1,5 +1,5 @@
 export const site = {
-  name: 'Jan Adrian Manzanero',
+  name: 'Jam Manzanero',
   nickname: 'Jam',
   role: 'QA • AI • SWE',
   email: 'thisisjanadrian@gmail.com',
