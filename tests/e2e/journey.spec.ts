@@ -91,6 +91,7 @@ test.describe('journey', () => {
     page,
   }) => {
     await revealAll(page); // the dots pop in from nothing, so wait for them
+    await settle(page);
     const m = await page.locator('[data-journey-list]').evaluate((wrap) => {
       const rect = (el: Element) => el.getBoundingClientRect();
       const centre = (el: Element) => rect(el).x + rect(el).width / 2;
@@ -190,13 +191,43 @@ test.describe('journey', () => {
         padding: parseFloat(getComputedStyle(el).paddingTop),
       }));
     if (narrow) {
-      expect(m.title).toBeLessThanOrEqual(20);
+      expect(m.title, 'the subheading role on a phone').toBeLessThanOrEqual(22);
       expect(m.bullet).toBeLessThanOrEqual(14);
-      expect(m.padding, 'tighter than the 64px on desktop').toBeLessThanOrEqual(40);
+      expect(m.padding, 'tighter than the 72px on desktop').toBeLessThanOrEqual(40);
     } else {
       expect(m.title).toBeGreaterThanOrEqual(24);
-      expect(m.padding).toBe(64);
+      expect(m.padding).toBe(72);
     }
+  });
+
+  // The entries alternate sides, so an entry's text sits above or below the NEXT entry's picture on
+  // the same side. Plenty of space between entries tells the reader which picture goes with which
+  // text, so on a desktop the gap between one entry and the next is generous.
+  test('entries are well separated, so a text is not mistaken for the next entry picture', async ({
+    page,
+  }) => {
+    test.skip(
+      (page.viewportSize()?.width ?? 0) < 640,
+      'on a phone the picture sits under its own text',
+    );
+    await revealAll(page);
+    await settle(page);
+    const m = await page.evaluate(() => {
+      const items = [...document.querySelectorAll('[data-journey-item]')];
+      const content = items.map((item) => {
+        const parts = ['.journey-body', '.journey-frame'].map((sel) =>
+          item.querySelector(sel)!.getBoundingClientRect(),
+        );
+        return {
+          top: Math.min(...parts.map((r) => r.top)),
+          bottom: Math.max(...parts.map((r) => r.bottom)),
+        };
+      });
+      return content.slice(1).map((c, i) => c.top - content[i].bottom);
+    });
+    expect(m.length).toBeGreaterThan(0);
+    for (const gap of m)
+      expect(gap, 'space between one entry and the next').toBeGreaterThanOrEqual(130);
   });
 
   test('the bands run edge to edge across the page', async ({ page }) => {
@@ -352,20 +383,17 @@ test.describe('journey', () => {
       await expect.poll(() => glintX(page), { timeout: 3000 }).toBeGreaterThan(0);
     });
 
-    test('an entry title gleams on hover, and reads the same colour otherwise', async ({
-      page,
-    }) => {
+    test('an entry title does not gleam: only the section heading does', async ({ page }) => {
       const title = items(page).nth(1).locator('h3');
       await title.scrollIntoViewIfNeeded();
-      const idle = await title.evaluate((el) => getComputedStyle(el).backgroundClip);
-      expect(idle).not.toContain('text');
       await title.hover();
+      await page.waitForTimeout(300);
       const hovered = await title.evaluate((el) => {
         const style = getComputedStyle(el);
         return { clip: style.backgroundClip, animation: style.animationName };
       });
-      expect(hovered.clip).toContain('text');
-      expect(hovered.animation).toBe('heading-glint');
+      expect(hovered.clip).not.toContain('text');
+      expect(hovered.animation).not.toBe('heading-glint');
     });
   });
 

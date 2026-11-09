@@ -88,11 +88,11 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <Footer />
 
     <script>
-      // Heading glint (see global.css): measure where a heading's letters start and end, so that the
+      // Heading glint (see global.css, which lists the headings that have it): measure where a heading's letters start and end, so that the
       // sweep of light crosses exactly the text, whatever the heading's width or alignment.
       document.addEventListener('pointerover', (event) => {
         const heading = (event.target as Element | null)?.closest(
-          'main h1, main h2, main h3',
+          '#hero h1, #projects h2, #journey h2, #skills h2, #contact h2',
         ) as HTMLElement | null;
         if (!heading) return;
         const range = document.createRange();

@@ -4,7 +4,10 @@ import { settle } from './helpers';
 
 // The last section is one button that opens an email to the inbox; there is no form any more.
 test.beforeEach(async ({ page }) => {
-  await page.goto('/#contact');
+  await page.goto('/');
+  await page
+    .locator('#contact')
+    .evaluate((el) => el.scrollIntoView({ block: 'end', behavior: 'instant' }));
   await settle(page);
 });
 
@@ -28,7 +31,8 @@ test('the button hops on hover, like the chips and cards', async ({ page }) => {
   test.skip(!canHover, 'no hover on touch devices');
   const button = page.locator('#contact').getByRole('link', { name: /email me/i });
   const lift = () => button.evaluate((n) => new DOMMatrix(getComputedStyle(n).transform).m42);
-  expect(await lift()).toBe(0);
+  // It rises into place as it appears: wait for that to finish before looking at the hop.
+  await expect.poll(lift).toBe(0);
   await button.hover();
   await page.waitForTimeout(500);
   expect(await lift()).toBeLessThan(-1);

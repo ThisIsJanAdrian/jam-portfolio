@@ -77,6 +77,35 @@ test.describe('heading glint', () => {
     expect(await title.evaluate((el) => getComputedStyle(el).backgroundClip)).not.toContain('text');
   });
 
+  // Only the hero name and the four section headings gleam; every other heading stays plain.
+  const plain: [string, string, string][] = [
+    ['a Journey entry title', '/', '.journey-title'],
+    ['"Stack"', '/', '#skills h3'],
+    ['a project row title', '/', '#projects h3'],
+    ['a certification title', '/', '#skills h4'],
+    ['a project page title', '/projects/personal-blog', 'h1'],
+    ['a project page section heading', '/projects/personal-blog', 'article h2'],
+    ['the 404 title', '/does-not-exist', 'h1'],
+  ];
+  for (const [name, path, selector] of plain) {
+    test(`${name} does not gleam`, async ({ page }) => {
+      await page.goto(path);
+      const canHover = await page.evaluate(() => matchMedia('(hover: hover)').matches);
+      test.skip(!canHover, 'no hover on touch devices');
+      const heading = page.locator(selector).first();
+      await heading.evaluate((el) => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
+      await settle(page);
+      await heading.hover();
+      await page.waitForTimeout(300);
+      const hovered = await heading.evaluate((el) => {
+        const style = getComputedStyle(el);
+        return { clip: style.backgroundClip, animation: style.animationName };
+      });
+      expect(hovered.clip, 'no letters painted from a background').not.toContain('text');
+      expect(hovered.animation).not.toBe('heading-glint');
+    });
+  }
+
   test.describe('reduced motion', () => {
     test.use({ reducedMotion: 'reduce' });
 

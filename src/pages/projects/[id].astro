@@ -18,12 +18,12 @@ const { Content } = await render(project);
     <a href="/#projects" class="text-sm underline">
       ← All projects
     </a>
-    <article class="mt-6 space-y-4 [&_h2]:mt-8 [&_h2]:text-h2 [&_ul]:list-disc [&_ul]:pl-6">
-      <h1 class="text-h1">{project.data.title}</h1>
+    <article class="mt-6 space-y-4 [&_h2]:mt-8 [&_p]:max-w-[65ch] [&_ul]:list-disc [&_ul]:pl-6 [&_li]:max-w-[65ch]">
+      <h1>{project.data.title}</h1>
       <p class="text-[var(--color-muted)]">
         {project.data.role} · {project.data.stack.join(', ')}
       </p>
-      {project.data.award && <p class="font-medium">🏆 {project.data.award}</p>}
+      {project.data.award && <p>🏆 {project.data.award}</p>}
       <Content />
       {project.data.testing && (
         <>
