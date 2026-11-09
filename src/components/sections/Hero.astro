@@ -63,7 +63,7 @@ const nameEm = displayName.length * NAME_EM_PER_CHARACTER;
         data-status
         style="--reveal-delay: 140ms"
         data-roles={JSON.stringify(roles)}
-        class="mt-2 flex min-h-[1.5em] items-center justify-center text-sm font-semibold tracking-widest text-[var(--color-accent)] uppercase sm:text-base"
+        class="mt-2 flex min-h-[1lh] items-center justify-center text-body font-semibold tracking-widest text-[var(--color-accent)] uppercase"
       >
         <!-- Screen readers get all the roles at once; the typing is decoration. The short role below
              (data-role-static) is what shows with reduced motion or without JavaScript. Otherwise
@@ -115,18 +115,18 @@ const nameEm = displayName.length * NAME_EM_PER_CHARACTER;
   .hero-col {
     container-type: inline-size;
 
-    /* As large as 90% of the normal hero size allows, but shrunk if needed so that it never wraps or
+    /* As large as the display size allows, but shrunk if needed so that it never wraps or
        spills out of the column (never below 1.5rem). */
-    --name-size: clamp(
-      1.5rem,
-      min(calc(var(--text-hero) * 0.9), calc(100cqw / var(--name-em))),
-      7.5rem
-    );
+    --name-size: clamp(1.5rem, min(var(--text-display), calc(100cqw / var(--name-em))), 7.5rem);
   }
 
   .hero-name {
     white-space: nowrap;
+    /* The display role, with its size shrunk to fit the column. */
     font-size: var(--name-size);
+    line-height: var(--text-display--line-height);
+    letter-spacing: var(--text-display--letter-spacing);
+    font-weight: var(--text-display--font-weight);
   }
 
   /* Desktop (two columns): the column's height is the terminal's height. "container-type: size"
@@ -140,8 +140,12 @@ const nameEm = displayName.length * NAME_EM_PER_CHARACTER;
     }
 
     .hero-avatar {
-      /* group = avatar + name (line-height 1.1) + gaps and role line (3.6rem) + padding (3rem) */
-      --avatar: clamp(7rem, min(100cqw, calc(100cqh - 1.1 * var(--name-size) - 6.6rem)), 20rem);
+      /* group = avatar + name (line-height 1.05) + gaps and role line (3.6rem) + padding (3rem) */
+      --avatar: clamp(
+        7rem,
+        min(100cqw, calc(100cqh - var(--text-display--line-height) * var(--name-size) - 6.6rem)),
+        20rem
+      );
       width: var(--avatar);
       height: var(--avatar);
     }

@@ -25,8 +25,8 @@ const pictureFor = (file?: string) =>
   line moves to the left and everything stacks beside it.
 -->
 <section id="journey" data-spy aria-labelledby="journey-title">
-  <div class="mx-auto max-w-6xl px-6 pt-24 pb-4">
-    <h2 id="journey-title" data-reveal class="text-h2">
+  <div class="mx-auto max-w-6xl px-6 pt-12 sm:pt-20">
+    <h2 id="journey-title" data-reveal>
       Journey
     </h2>
   </div>
@@ -65,12 +65,12 @@ const pictureFor = (file?: string) =>
           <span class="journey-dot" data-reveal aria-hidden="true"></span>
 
           <div class="journey-body" data-reveal>
-            <h3 class="journey-title">{item.title}</h3>
+            <h3 class="journey-title font-heading text-subheading">{item.title}</h3>
             <p class="journey-org">
               {item.orgUrl ? <ExternalLink href={item.orgUrl}>{item.org}</ExternalLink> : item.org}
               {item.location && <span class="journey-place"> · {item.location}</span>}
             </p>
-            <ul class="journey-points">
+            <ul class="journey-points text-small sm:text-body">
               {item.points.map((point) => (
                 <li>{point}</li>
               ))}
@@ -142,7 +142,7 @@ const pictureFor = (file?: string) =>
   /* Each entry is at least this tall, so its picture stays in view for a while as you scroll. Raise
      it for a longer pause on each entry, lower it for a tighter list. */
   .journey-item {
-    --journey-min-height: max(24rem, 60svh);
+    --journey-min-height: max(20rem, 40svh);
     /* Picture shadow: soft and layered, with a faint accent glow. */
     --journey-shadow:
       0 24px 48px -16px rgb(0 0 0 / 0.28), 0 8px 16px -8px rgb(0 0 0 / 0.16),
@@ -153,7 +153,20 @@ const pictureFor = (file?: string) =>
     grid-template-columns: minmax(0, 1fr) var(--rail-width) minmax(0, 1fr);
     align-items: center;
     min-height: var(--journey-min-height);
-    padding: 4rem var(--edge);
+    /* Roomy between entries: with the left/right alternation, an entry's text sits under or over the
+       NEXT entry's picture on the same side, and generous space is what tells the reader which
+       picture belongs to which text. */
+    padding: 4.5rem var(--edge);
+  }
+
+  @media (min-width: 640px) {
+    /* The first and last entries have the page's own spacing on one side already. */
+    .journey-item:first-child {
+      padding-top: 2rem;
+    }
+    .journey-item:last-child {
+      padding-bottom: 1.5rem;
+    }
   }
 
   /* Black barely shows on a dark page, so the shadow is deeper and the glow stronger. */
@@ -326,7 +339,7 @@ const pictureFor = (file?: string) =>
 
   /* ---- Year, dot and text --------------------------------------------------------------------- */
   .journey-year {
-    font-weight: 600;
+    font-weight: 500;
     color: var(--color-accent);
   }
 
@@ -364,17 +377,8 @@ const pictureFor = (file?: string) =>
     max-width: calc(30rem + var(--dot-gap));
   }
 
-  .journey-title {
-    font-family: var(--font-heading);
-    font-weight: 800;
-    font-size: var(--text-h2);
-    line-height: 1.15;
-    letter-spacing: -0.03em;
-  }
-
   .journey-org {
     margin-top: 0.5rem;
-    font-size: 1.0625rem;
     color: var(--color-text);
   }
 
@@ -436,7 +440,7 @@ const pictureFor = (file?: string) =>
 
     .journey-item {
       --journey-min-height: 0; /* the entries are only as tall as their content */
-      padding-block: 2.5rem; /* closer together than on desktop (4rem) */
+      padding-block: 2.5rem; /* closer together than on desktop (4.5rem) */
       grid-template-columns: var(--rail-width) minmax(0, 1fr);
       grid-template-rows: auto auto auto;
       align-items: start;
@@ -458,19 +462,13 @@ const pictureFor = (file?: string) =>
       margin-top: 1.25rem;
     }
 
-    /* Smaller text on phones. */
-    .journey-title {
-      font-size: 1.25rem;
-    }
-
+    /* Tighter on phones (the text sizes come from the type scale). */
     .journey-org {
       margin-top: 0.375rem;
-      font-size: 0.9375rem;
     }
 
     .journey-points {
       margin-top: 0.875rem;
-      font-size: 0.875rem;
     }
 
     .journey-dot {

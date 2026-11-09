@@ -1,14 +1,14 @@
 import { expect, test } from '@playwright/test';
 import { site } from '../../src/data/site';
 
-// The footer: the copyright on the left, GitHub, LinkedIn and Email links on the right.
+// The footer: the copyright on the left, GitHub and LinkedIn links on the right.
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
 });
 
 const footer = (page: import('@playwright/test').Page) => page.getByRole('contentinfo');
 
-test('has GitHub, LinkedIn and Email links that go where they say', async ({ page }) => {
+test('has GitHub and LinkedIn links that go where they say', async ({ page }) => {
   await expect(footer(page).getByRole('link', { name: /^GitHub/ })).toHaveAttribute(
     'href',
     site.links.github,
@@ -17,24 +17,16 @@ test('has GitHub, LinkedIn and Email links that go where they say', async ({ pag
     'href',
     site.links.linkedin,
   );
-  await expect(footer(page).getByRole('link', { name: /^Email/ })).toHaveAttribute(
-    'href',
-    `mailto:${site.email}`,
-  );
-  await expect(footer(page).getByRole('link')).toHaveCount(3);
+  await expect(footer(page).getByRole('link')).toHaveCount(2);
 });
 
-test('GitHub and LinkedIn open in a new tab, safely; Email stays in this tab', async ({ page }) => {
+test('GitHub and LinkedIn open in a new tab, safely', async ({ page }) => {
   for (const name of [/^GitHub/, /^LinkedIn/]) {
     const link = footer(page).getByRole('link', { name });
     await expect(link).toHaveAttribute('target', '_blank');
     await expect(link).toHaveAttribute('rel', /noopener/);
     await expect(link).toContainText('opens in a new tab');
   }
-  await expect(footer(page).getByRole('link', { name: /^Email/ })).not.toHaveAttribute(
-    'target',
-    '_blank',
-  );
 });
 
 test('the links sit on the right, beside the copyright, on a wide screen', async ({

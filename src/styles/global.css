@@ -25,11 +25,88 @@
   --font-body: var(--font-sora);
   --font-sans: var(--font-sora);
   --font-mono: var(--font-jetbrains);
+}
 
-  /* Type scale (fluid). Use as text-hero, text-h1, text-h2. */
-  --text-hero: clamp(2.5rem, 5vw, 4.25rem);
-  --text-h1: clamp(2rem, 3.5vw, 3rem);
-  --text-h2: clamp(1.5rem, 2.5vw, 2rem);
+/*
+ * Type scale. Named by ROLE (what the text is for), not by size, so a redesign changes the values
+ * here and not the components. Use them as classes: text-display, text-heading, text-body...
+ * Each role sets four things together: size, line-height, letter-spacing and (for headings) weight.
+ *
+ * The sizes come from a modular scale: step n = base * ratio^n. The base is the body text and the
+ * ratio is 1.2 on a 360px phone, growing to 1.25 at 1440px, so the steps are fluid: every size
+ * below is a clamp() that moves smoothly between its phone and desktop value (the formula is
+ * Utopia's, utopia.fyi). The unit stays rem, with a rem term inside each clamp(), so browser zoom
+ * and a larger default font size still scale the text. Small sizes are fixed: at 12 to 14px there is
+ * too little room to vary.
+ *
+ *   step   phone -> desktop    role
+ *     6    44.8 -> 61px        display      the name in the hero
+ *     5    31.1 -> 49px        title        the h1 of a project page and of the 404 page
+ *     4    26   -> 39px        heading      section headings (h2): the phone size is step 3 and the
+ *                                           desktop size step 4, so on a desktop they stand well
+ *                                           clear of the 25px subheadings below
+ *     2    21.6 -> 25px        subheading   a Journey entry, "Stack", "Certifications"
+ *     1    18   -> 20px        lead         the line that introduces something
+ *     0    15   -> 16px        body         everything that is read
+ *    -1    12.5 -> 12.8px      caption      pills and buttons on phones
+ *   fixed  14px                small        the footer, nav, chips and secondary lines
+ *   fixed  12px                label        mono, uppercase, wide tracking (the tech tags)
+ *   fixed  14px                data         mono: years, dates
+ *   fluid  12 -> 16px          terminal     mono: the hero terminal
+ *
+ * Line-height falls as size grows (big headings are tight, body text airy) and letter-spacing goes
+ * the other way (display type is tightened, small uppercase labels are opened up). "static" keeps
+ * every token in the stylesheet, so the components' own CSS can use them with var(--text-body).
+ */
+@theme static {
+  --text-display: clamp(2.799rem, 2.461rem + 1.504vw, 3.815rem);
+  --text-display--line-height: 1.05;
+  --text-display--letter-spacing: -0.03em;
+  --text-display--font-weight: 800;
+
+  --text-title: clamp(1.944rem, 1.575rem + 1.641vw, 3.052rem);
+  --text-title--line-height: 1.1;
+  --text-title--letter-spacing: -0.025em;
+  --text-title--font-weight: 800;
+
+  --text-heading: clamp(1.62rem, 1.346rem + 1.217vw, 2.441rem);
+  --text-heading--line-height: 1.15;
+  --text-heading--letter-spacing: -0.02em;
+  --text-heading--font-weight: 800;
+
+  --text-subheading: clamp(1.35rem, 1.279rem + 0.315vw, 1.563rem);
+  --text-subheading--line-height: 1.2;
+  --text-subheading--letter-spacing: -0.015em;
+  --text-subheading--font-weight: 700;
+
+  --text-lead: clamp(1.125rem, 1.083rem + 0.185vw, 1.25rem);
+  --text-lead--line-height: 1.5;
+  --text-lead--letter-spacing: 0;
+
+  --text-body: clamp(0.938rem, 0.917rem + 0.093vw, 1rem);
+  --text-body--line-height: 1.6;
+  --text-body--letter-spacing: 0;
+
+  --text-caption: clamp(0.781rem, 0.775rem + 0.028vw, 0.8rem);
+  --text-caption--line-height: 1.4;
+  --text-caption--letter-spacing: 0;
+
+  --text-small: 0.875rem;
+  --text-small--line-height: 1.5;
+  --text-small--letter-spacing: 0;
+
+  --text-label: 0.75rem;
+  --text-label--line-height: 1.4;
+  --text-label--letter-spacing: 0.08em;
+  --text-label--font-weight: 500;
+
+  --text-data: 0.875rem;
+  --text-data--line-height: 1.4;
+  --text-data--letter-spacing: 0;
+
+  --text-terminal: clamp(0.75rem, 0.667rem + 0.37vw, 1rem);
+  --text-terminal--line-height: 1.6;
+  --text-terminal--letter-spacing: 0;
 }
 
 /*
@@ -90,36 +167,40 @@
     color: var(--color-text);
     font-family: var(--font-body);
     font-weight: 400;
-    line-height: 1.6;
-    letter-spacing: -0.01em;
+    /* The body role: 15px on a phone, 16px on a desktop, and fluid in between. Anything that
+       inherits the body size follows it. */
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    letter-spacing: var(--text-body--letter-spacing);
   }
 
-  /* A touch smaller body text on phones (below Tailwind's `sm`, 640px). Anything that inherits the
-     body size shrinks with it; headings keep their own fluid scale. */
-  @media (max-width: 639px) {
-    body {
-      font-size: 0.9375rem; /* 15px instead of 16px */
-    }
-  }
-
+  /* Paragraphs avoid a lonely last word; the big headings balance their lines (not the short card titles, which sit in narrow columns). */
   p {
-    line-height: 1.6;
-    letter-spacing: -0.01em;
+    text-wrap: pretty;
   }
 
+  /* A heading with no class of its own gets the role for its level; a component names a different
+     one with a class (the hero's name is "display", a Journey entry "subheading"). */
+  h1 {
+    @apply font-heading text-title;
+  }
+  h2 {
+    @apply font-heading text-heading;
+  }
   h1,
-  h2,
-  .display-title {
-    font-family: var(--font-heading);
-    font-weight: 800;
-    line-height: 1.1;
-    letter-spacing: -0.03em;
+  h2 {
+    text-wrap: balance;
   }
 
   code {
-    font-family: var(--font-mono);
-    font-size: 0.875rem;
-    letter-spacing: 0.02em;
+    @apply text-data font-mono;
+  }
+
+  /* Bold is the loaded semibold (600). The browser default, "bolder", would ask for 700, which Sora
+     does not have, and the text would be shown in a neighbouring weight by guesswork. */
+  strong,
+  b {
+    font-weight: 600;
   }
 
   /* Visible keyboard focus: an accessibility requirement (WCAG 2.4.7). */
@@ -129,13 +210,15 @@
   }
 }
 
-/* Monospace labels: technology lists, dates and other "data" text. */
+/* Monospace text: .tech-tag is the "label" role (technology lists), .metric-badge the "data" role
+   (years and dates, with digits of equal width). */
 @layer components {
-  .tech-tag,
+  .tech-tag {
+    @apply text-label font-mono uppercase;
+  }
   .metric-badge {
-    font-family: var(--font-mono);
-    font-size: 0.875rem;
-    letter-spacing: 0.02em;
+    @apply text-data font-mono;
+    font-variant-numeric: tabular-nums;
   }
 }
 
@@ -249,8 +332,9 @@
 }
 
 /*
- * Heading glint: hover a heading and a soft band of light gray sweeps across its letters
- * once. The text is painted from a background clipped to the letters: a solid layer in the heading's
+ * Heading glint: hover one of the main headings (the hero name and the Projects, Journey, Skills
+ * and "Get in touch" section headings, and no other) and a soft band of light gray sweeps across
+ * its letters once. The text is painted from a background clipped to the letters: a solid layer in the heading's
  * own colour underneath (so nothing changes before or after), and the moving highlight on top.
  * The band starts just left of the first letter and ends past the last one. Where the text starts and
  * ends is measured by a small script in Layout.astro when the pointer enters (--glint-from and
@@ -259,7 +343,7 @@
  * Only with a real pointer, and never with reduced motion.
  */
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
-  main :is(h1, h2, h3):not(.sr-only):hover {
+  :is(#hero h1, #projects h2, #journey h2, #skills h2, #contact h2):not(.sr-only):hover {
     background:
       linear-gradient(
           110deg,

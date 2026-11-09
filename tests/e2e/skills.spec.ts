@@ -223,7 +223,7 @@ test.describe('skill hover', () => {
     const size = await pill(page, 'Python').evaluate((n) =>
       parseFloat(getComputedStyle(n).fontSize),
     );
-    expect(size).toBeGreaterThanOrEqual(16);
+    expect(size, 'the body role: 15px on a phone, 16px on a desktop').toBeGreaterThanOrEqual(15.5);
   });
 });
 
@@ -249,4 +249,59 @@ test('a certification card hops and lights its outline on hover, like the skills
   const hovered = await look();
   expect(hovered.fill, 'the fill does not change, so the text stays readable').toBe(idle.fill);
   expect(hovered.outline, 'the outline lights up').not.toBe(idle.outline);
+});
+
+// The colour dots: every one sits the same whole number of pixels from its pill's edges, however
+// the pill happens to fall on the page (a fractional offset draws the dot blurred or a pixel off).
+test('the colour dots are the same size and sit at whole-pixel offsets in every pill', async ({
+  page,
+}) => {
+  await pill(page, 'Python').evaluate((n) =>
+    n.scrollIntoView({ block: 'center', behavior: 'instant' }),
+  );
+  await settle(page);
+  const m = await page.evaluate(() => {
+    const rows = [...document.querySelectorAll('.skill')].map((el) => {
+      const box = el.getBoundingClientRect();
+      return {
+        height: box.height,
+        dots: [...el.querySelectorAll('.dot')].map((d) => {
+          const r = d.getBoundingClientRect();
+          return {
+            top: r.top - box.top,
+            bottom: box.bottom - r.bottom,
+            size: r.width,
+            h: r.height,
+          };
+        }),
+        left: [...el.querySelectorAll('.dot')].map((d, i, all) =>
+          i ? d.getBoundingClientRect().left - all[i - 1].getBoundingClientRect().right : 0,
+        ),
+      };
+    });
+    const tops = [
+      ...new Set(
+        [...document.querySelectorAll('.skill')].map((e) => e.getBoundingClientRect().top),
+      ),
+    ];
+    return { rows, rowPitch: tops.slice(1).map((t, i) => t - tops[i]) };
+  });
+  const whole = (n: number) => Math.abs(n - Math.round(n)) < 0.02;
+  const sizes = new Set<number>();
+  const offsets = new Set<number>();
+  for (const pill of m.rows) {
+    expect(whole(pill.height), 'the pill height is a whole number of pixels').toBe(true);
+    for (const dot of pill.dots) {
+      expect(whole(dot.top) && whole(dot.bottom), 'whole-pixel space above and below').toBe(true);
+      expect(Math.abs(dot.top - dot.bottom), 'centred').toBeLessThan(0.02);
+      expect(Math.abs(dot.size - dot.h), 'a circle').toBeLessThan(0.02);
+      sizes.add(Math.round(dot.size));
+      offsets.add(Math.round(dot.top));
+    }
+    for (const gap of pill.left) expect(whole(gap), 'whole-pixel gaps between dots').toBe(true);
+  }
+  expect(sizes.size, 'every dot the same size').toBe(1);
+  expect(offsets.size, 'every dot at the same height inside its pill').toBe(1);
+  // The rows of pills are a whole number of pixels apart too, so nothing drifts from row to row.
+  for (const pitch of m.rowPitch) expect(whole(pitch)).toBe(true);
 });

@@ -12,13 +12,13 @@ const labelOf = (id: string) => disciplines.find((d) => d.id === id)!.label;
   towards it light up in that colour while the rest fade back; pick it again, or "All", for the
   plain pool. Without JavaScript the buttons are hidden and the pool is simply all of it.
 -->
-<section id="skills" data-spy aria-labelledby="skills-title" class="px-6 pt-16 pb-8 sm:pt-24">
+<section id="skills" data-spy aria-labelledby="skills-title" class="px-6 pt-12 sm:pt-20">
   <div class="mx-auto max-w-6xl">
-    <h2 id="skills-title" data-reveal class="text-h2">
+    <h2 id="skills-title" data-reveal>
       Skills
     </h2>
 
-    <h3 data-reveal class="mt-8 text-xl font-semibold">
+    <h3 data-reveal class="mt-8 font-heading text-subheading">
       Stack
     </h3>
 
@@ -45,7 +45,7 @@ const labelOf = (id: string) => disciplines.find((d) => d.id === id)!.label;
     </div>
     <p class="sr-only" role="status" data-skill-status></p>
 
-    <ul data-reveal data-skill-pool data-filter="all" class="skill-pool mt-6">
+    <ul data-reveal data-skill-pool data-filter="all" class="skill-pool mt-4">
       {skills.map((skill) => (
         <li class="skill" {...Object.fromEntries(skill.disciplines.map((d) => [`data-${d}`, '']))}>
           <span class="dots" aria-hidden="true">
@@ -59,7 +59,7 @@ const labelOf = (id: string) => disciplines.find((d) => d.id === id)!.label;
       ))}
     </ul>
 
-    <h3 data-reveal class="mt-10 text-xl font-semibold sm:mt-16">
+    <h3 data-reveal class="mt-8 font-heading text-subheading sm:mt-12">
       Certifications
     </h3>
     <ul class="reveal-stagger mt-4 grid gap-3 sm:mt-6 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
@@ -68,7 +68,7 @@ const labelOf = (id: string) => disciplines.find((d) => d.id === id)!.label;
           data-reveal
           class="hover-card group relative flex flex-col rounded-2xl border border-[var(--color-border)] p-4 sm:p-6"
         >
-          <h4 class="font-semibold leading-snug sm:min-h-[2lh]">
+          <h4 class="text-body font-semibold leading-snug sm:min-h-[2lh]">
             {c.url ? (
               /* Stretched link: the whole card is clickable, with one real link for assistive tech. */
               <a
@@ -93,7 +93,7 @@ const labelOf = (id: string) => disciplines.find((d) => d.id === id)!.label;
           {/* On a phone the issuer and the date share a line, to keep the cards short. */}
           <div class="mt-1.5 flex flex-wrap items-baseline justify-between gap-x-3 sm:mt-0 sm:block">
             <p class="text-[var(--color-muted)] sm:mt-5">{c.issuer}</p>
-            <p class="metric-badge text-sm text-[var(--color-muted)] sm:mt-1">
+            <p class="metric-badge text-[var(--color-muted)] sm:mt-1">
               Issued {formatMonth(c.issued)}
             </p>
           </div>
@@ -141,8 +141,7 @@ const labelOf = (id: string) => disciplines.find((d) => d.id === id)!.label;
     border: 1px solid var(--color-border);
     border-radius: 9999px;
     padding: 0.4rem 1rem;
-    font-size: 0.875rem;
-    font-weight: 500;
+    font-size: var(--text-small);
     cursor: pointer;
     transition:
       background-color 0.2s,
@@ -170,19 +169,26 @@ const labelOf = (id: string) => disciplines.find((d) => d.id === id)!.label;
     --on-colour: var(--color-bg);
   }
 
+  /* The pills and their colour dots use whole-pixel sizes (height, line-height, dot size and gaps),
+     so that every dot sits the same whole number of pixels from its pill's edges. Pills land on
+     fractional positions on the page (their text has fractional widths), and a dot at a fractional
+     offset is drawn blurred or a pixel off, differently from pill to pill. */
   .skill-pool {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 8px;
   }
   .skill {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    box-sizing: border-box;
+    height: 34px; /* 1px border, 32px inside */
+    gap: 8px;
     border: 1px solid var(--color-border);
     border-radius: 9999px;
-    padding: 0.25rem 0.85rem;
-    font-size: 1rem;
+    padding: 0 0.85rem;
+    font-size: var(--text-body);
+    line-height: 24px; /* (32 - 24) / 2 = 4px above and below the text */
     transition:
       opacity 0.25s,
       border-color 0.25s,
@@ -194,11 +200,15 @@ const labelOf = (id: string) => disciplines.find((d) => d.id === id)!.label;
     display: inline-flex;
     gap: 3px;
   }
+  .dots,
   .dot {
-    /* Never squeezed by the pill's flex layout: every dot is the same size. */
     flex: none;
-    width: 7px;
-    height: 7px;
+  }
+  .dot {
+    /* Never squeezed by the pill's flex layout: every dot is the same size. 8px in a 32px inside
+       gives exactly 12px above and below. */
+    width: 8px;
+    height: 8px;
     border-radius: 9999px;
     background: var(--color-muted);
   }
@@ -256,22 +266,24 @@ const labelOf = (id: string) => disciplines.find((d) => d.id === id)!.label;
     }
     .chip {
       padding: 0.25rem 0.75rem;
-      font-size: 0.8rem;
+      font-size: var(--text-caption);
     }
     .skill-pool {
-      gap: 0.3rem;
+      gap: 5px;
     }
     .skill {
-      gap: 0.35rem;
-      padding: 0.1rem 0.6rem;
-      font-size: 0.8rem;
+      height: 26px; /* 24px inside */
+      gap: 6px;
+      padding: 0 0.6rem;
+      font-size: var(--text-caption);
+      line-height: 20px; /* 2px above and below the text */
     }
     .dots {
       gap: 2px;
     }
     .dot {
-      width: 5px;
-      height: 5px;
+      width: 6px; /* (24 - 6) / 2 = 9px above and below */
+      height: 6px;
     }
   }
 
