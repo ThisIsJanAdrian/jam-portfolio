@@ -34,7 +34,7 @@ test.describe('default motion', () => {
 
     await page
       .getByRole('navigation', { name: 'Main' })
-      .getByRole('link', { name: 'Projects', exact: true })
+      .getByRole('link', { name: 'Work', exact: true })
       .click();
 
     // A real slide animates `transform`; a fade would only animate `opacity`.
@@ -61,8 +61,8 @@ test.describe('far jumps', () => {
     });
 
     const nav = page.getByRole('navigation', { name: 'Main' });
-    await nav.getByRole('link', { name: 'Skills', exact: true }).click();
-    await expect(nav.getByRole('link', { name: 'Skills', exact: true })).toHaveAttribute(
+    await nav.getByRole('link', { name: 'Life', exact: true }).click();
+    await expect(nav.getByRole('link', { name: 'Life', exact: true })).toHaveAttribute(
       'aria-current',
       'location',
     );
@@ -78,7 +78,7 @@ test.describe('slide curve', () => {
     await page.goto('/');
     await expect(page.locator('[data-nav-indicator][data-ready]')).toBeAttached();
 
-    // Sample the pill's right edge while it slides to the last link ("Skills").
+    // Sample the pill's right edge while it slides to the last link ("Life").
     const edges = await page.evaluate(
       () =>
         new Promise<number[]>((resolve) => {
@@ -91,7 +91,7 @@ test.describe('slide curve', () => {
             samples.push(pill.getBoundingClientRect().right);
             resolve(samples);
           });
-          document.querySelector<HTMLAnchorElement>('a[data-section=skills]')!.click();
+          document.querySelector<HTMLAnchorElement>('a[data-section=life]')!.click();
         }),
     );
 
@@ -124,8 +124,8 @@ test.describe('reduced motion', () => {
   test('the nav highlight jumps instead of sliding', async ({ page }) => {
     await page.goto('/');
     const nav = page.getByRole('navigation', { name: 'Main' });
-    await nav.getByRole('link', { name: 'Projects', exact: true }).click();
-    await expect(nav.getByRole('link', { name: 'Projects', exact: true })).toHaveAttribute(
+    await nav.getByRole('link', { name: 'Work', exact: true }).click();
+    await expect(nav.getByRole('link', { name: 'Work', exact: true })).toHaveAttribute(
       'aria-current',
       'location',
     );
@@ -136,8 +136,8 @@ test.describe('reduced motion', () => {
     await page.goto('/');
     await page
       .getByRole('navigation', { name: 'Main' })
-      .getByRole('link', { name: 'Projects', exact: true })
+      .getByRole('link', { name: 'Work', exact: true })
       .click();
-    await expect(page.locator('#projects')).toBeInViewport();
+    await expect(page.locator('#work')).toBeInViewport();
   });
 });

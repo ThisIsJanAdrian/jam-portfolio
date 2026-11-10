@@ -1,0 +1,18 @@
+---
+import Projects from './Projects.astro';
+import Skills from './Skills.astro';
+---
+
+<!--
+  One "Work" section holding the proof of work: the projects, the stack, and the certifications.
+  The subsections (Projects, Stack, Certifications) are h3s under this h2.
+-->
+<section id="work" data-spy aria-labelledby="work-title" class="px-6 pt-12 sm:pt-20">
+  <div class="mx-auto max-w-6xl">
+    <h2 id="work-title" data-reveal>
+      Work
+    </h2>
+    <Projects />
+    <Skills />
+  </div>
+</section>

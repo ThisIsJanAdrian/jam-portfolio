@@ -4,9 +4,9 @@ import { shortName } from '../../src/utils/names';
 import { settle } from './helpers';
 
 const sections = [
-  ['Projects', 'projects'],
+  ['Work', 'work'],
   ['Journey', 'journey'],
-  ['Skills', 'skills'],
+  ['Life', 'life'],
 ] as const;
 
 test('nav links jump to their sections', async ({ page }) => {
@@ -150,24 +150,24 @@ test('nav stays visible while scrolling', async ({ page }) => {
 test('project card opens a working case study and links back', async ({ page }) => {
   await page.goto('/');
   // Content-agnostic: open whichever project is listed first and check its title carries over.
-  const firstProject = page.locator('#projects h3 a').first();
+  const firstProject = page.locator('#projects h4 a').first();
   const title = (await firstProject.textContent())?.trim() ?? '';
   expect(title).not.toBe('');
   await firstProject.click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(title);
 
   await page.getByRole('link', { name: /all projects/i }).click();
-  await expect(page).toHaveURL(/#projects$/);
+  await expect(page).toHaveURL(/#work$/);
 });
 
 test('nav works from a case-study page too', async ({ page }) => {
   await page.goto('/projects/personal-blog');
   await page
     .getByRole('navigation', { name: 'Main' })
-    .getByRole('link', { name: 'Skills', exact: true })
+    .getByRole('link', { name: 'Life', exact: true })
     .click();
-  await expect(page).toHaveURL(/\/#skills$/);
-  await expect(page.locator('#skills')).toBeInViewport();
+  await expect(page).toHaveURL(/\/#life$/);
+  await expect(page.locator('#life')).toBeInViewport();
 });
 
 test('skip link moves focus to main content', async ({ page, browserName }) => {
@@ -231,7 +231,7 @@ test.describe('tall screens', () => {
 });
 
 // Contact has no nav link (it is only a button at the very end), so at the bottom of the page the
-// last link, Skills, keeps the highlight; scrolling back up moves it again.
+// last link, Life, keeps the highlight; scrolling back up moves it again.
 test('at the bottom of the page the last link stays highlighted, and it leaves again when scrolling up', async ({
   page,
 }) => {
@@ -240,15 +240,15 @@ test('at the bottom of the page the last link stays highlighted, and it leaves a
   await page.evaluate(() =>
     window.scrollTo({ top: document.body.scrollHeight, behavior: 'instant' }),
   );
-  await expect(nav.getByRole('link', { name: 'Skills', exact: true })).toHaveAttribute(
+  await expect(nav.getByRole('link', { name: 'Life', exact: true })).toHaveAttribute(
     'aria-current',
     'location',
   );
   await expect(nav.getByRole('link', { name: 'Contact' })).toHaveCount(0);
   await page.evaluate(() =>
-    document.querySelector('#projects')!.scrollIntoView({ behavior: 'instant' }),
+    document.querySelector('#work')!.scrollIntoView({ behavior: 'instant' }),
   );
-  await expect(nav.getByRole('link', { name: 'Projects', exact: true })).toHaveAttribute(
+  await expect(nav.getByRole('link', { name: 'Work', exact: true })).toHaveAttribute(
     'aria-current',
     'location',
   );

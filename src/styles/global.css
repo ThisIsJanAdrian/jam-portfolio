@@ -343,7 +343,7 @@
  * Only with a real pointer, and never with reduced motion.
  */
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
-  :is(#hero h1, #projects h2, #journey h2, #skills h2, #contact h2):not(.sr-only):hover {
+  :is(#hero h1, #work h2, #journey h2, #life h2, #contact h2):not(.sr-only):hover {
     background:
       linear-gradient(
           110deg,

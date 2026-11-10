@@ -53,7 +53,7 @@ test.describe('hero layout', () => {
     }) => {
       await page.setViewportSize({ width, height: 900 });
       const hero = await box(page, '#hero > div.grid');
-      const projects = await box(page, '#projects > div');
+      const projects = await box(page, '#work > div');
       expect(Math.abs(hero.x - (projects.x - 32))).toBeLessThanOrEqual(1);
       expect(Math.abs(hero.width - (projects.width + 64))).toBeLessThanOrEqual(1);
     });

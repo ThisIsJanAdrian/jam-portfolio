@@ -6,14 +6,14 @@ import { settle } from './helpers';
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
   await page
-    .locator('#projects h3 a')
+    .locator('#projects h4 a')
     .first()
     .evaluate((n) => n.scrollIntoView({ block: 'center', behavior: 'instant' }));
   await settle(page);
 });
 
 const row = (page: import('@playwright/test').Page) =>
-  page.locator('#projects h3 a').first().locator('xpath=ancestor::li');
+  page.locator('#projects h4 a').first().locator('xpath=ancestor::li');
 const look = (el: import('@playwright/test').Locator) =>
   el.evaluate((n) => {
     const style = getComputedStyle(n);
@@ -73,7 +73,7 @@ test('after a click the row goes back to normal (a mouse click leaves no lit out
   isMobile,
 }) => {
   test.skip(isMobile, 'hover');
-  const link = page.locator('#projects h3 a').first();
+  const link = page.locator('#projects h4 a').first();
   await link.evaluate((el) => el.addEventListener('click', (e) => e.preventDefault()));
   const li = row(page);
   const idle = await look(li);

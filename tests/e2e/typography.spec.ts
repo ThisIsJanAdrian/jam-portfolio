@@ -95,7 +95,7 @@ test.describe('typography', () => {
         parseFloat(getComputedStyle(document.querySelector(sel)!).fontSize);
       return {
         display: px('#hero h1'),
-        heading: px('#projects h2'),
+        heading: px('#work h2'),
         subheading: px('.journey-title'),
         lead: px('#contact p'),
         body: px('body'),
@@ -134,14 +134,14 @@ test.describe('typography', () => {
         .locator(selector)
         .first()
         .evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
-    const heading = await px('#skills h2');
-    for (const subheading of ['.journey-title', '#skills h3']) {
+    const heading = await px('#work h2');
+    for (const subheading of ['.journey-title', '#skills h3', '#projects h3']) {
       expect(heading / (await px(subheading)), `heading vs ${subheading}`).toBeGreaterThan(1.45);
     }
     expect(heading).toBeCloseTo(39, 0);
     // On a phone it keeps the smaller size, as before.
     await page.setViewportSize({ width: 360, height: 800 });
-    expect(await px('#skills h2')).toBeCloseTo(25.9, 0);
+    expect(await px('#work h2')).toBeCloseTo(25.9, 0);
   });
 
   test('a project page title is bigger than its section headings', async ({ page }) => {
@@ -172,7 +172,7 @@ test.describe('typography', () => {
       };
       return {
         display: read('#hero h1'),
-        heading: read('#projects h2'),
+        heading: read('#work h2'),
         body: read('body'),
         label: read('.tech-tag'),
       };
