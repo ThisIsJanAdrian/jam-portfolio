@@ -12,13 +12,9 @@ const labelOf = (id: string) => disciplines.find((d) => d.id === id)!.label;
   towards it light up in that colour while the rest fade back; pick it again, or "All", for the
   plain pool. Without JavaScript the buttons are hidden and the pool is simply all of it.
 -->
-<section id="skills" data-spy aria-labelledby="skills-title" class="px-6 pt-12 sm:pt-20">
-  <div class="mx-auto max-w-6xl">
-    <h2 id="skills-title" data-reveal>
-      Skills
-    </h2>
-
-    <h3 data-reveal class="mt-8 font-heading text-subheading">
+<div id="skills" class="mt-8 sm:mt-12">
+  <div>
+    <h3 data-reveal class="font-heading text-subheading">
       Stack
     </h3>
 
@@ -101,7 +97,7 @@ const labelOf = (id: string) => disciplines.find((d) => d.id === id)!.label;
       ))}
     </ul>
   </div>
-</section>
+</div>
 
 <style>
   /* One colour per discipline: green QA, red SWE, blue AI. Darker for light mode, lighter for dark,

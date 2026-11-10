@@ -4,7 +4,7 @@ import { settle } from './helpers';
 // Headings glint when hovered: a band of the accent colour sweeps over the letters. It needs a real
 // pointer and is switched off for reduced motion.
 test.describe('heading glint', () => {
-  const headings = ['#projects h2', '#skills h2', '#contact h2', '#hero h1', '#journey h2'];
+  const headings = ['#work h2', '#life h2', '#contact h2', '#hero h1', '#journey h2'];
 
   for (const selector of headings) {
     test(`${selector} gleams on hover`, async ({ page }) => {
@@ -39,7 +39,7 @@ test.describe('heading glint', () => {
     await page.goto('/');
     const canHover = await page.evaluate(() => matchMedia('(hover: hover)').matches);
     test.skip(!canHover, 'no hover on touch devices');
-    const heading = page.locator('#projects h2');
+    const heading = page.locator('#work h2');
     await heading.evaluate((el) => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
     await settle(page); // it rises into place as it appears: hover once it has stopped
     await heading.hover();
@@ -81,7 +81,8 @@ test.describe('heading glint', () => {
   const plain: [string, string, string][] = [
     ['a Journey entry title', '/', '.journey-title'],
     ['"Stack"', '/', '#skills h3'],
-    ['a project row title', '/', '#projects h3'],
+    ['"Projects"', '/', '#projects > h3'],
+    ['a project row title', '/', '#projects h4'],
     ['a certification title', '/', '#skills h4'],
     ['a project page title', '/projects/personal-blog', 'h1'],
     ['a project page section heading', '/projects/personal-blog', 'article h2'],
@@ -113,7 +114,7 @@ test.describe('heading glint', () => {
       await page.goto('/');
       const canHover = await page.evaluate(() => matchMedia('(hover: hover)').matches);
       test.skip(!canHover, 'no hover on touch devices');
-      const heading = page.locator('#projects h2');
+      const heading = page.locator('#work h2');
       await heading.evaluate((el) => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
       await heading.hover();
       expect(await heading.evaluate((el) => getComputedStyle(el).animationName)).toBe('none');

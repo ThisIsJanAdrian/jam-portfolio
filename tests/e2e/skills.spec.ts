@@ -106,10 +106,10 @@ test.describe('certification cards', () => {
   test('the skills sit under a "Stack" heading, before the certifications', async ({ page }) => {
     const headings = await page.locator('#skills').getByRole('heading').allTextContents();
     const text = headings.map((h) => h.trim());
-    expect(text.slice(0, 3)).toEqual(['Skills', 'Stack', 'Certifications']);
+    expect(text.slice(0, 2)).toEqual(['Stack', 'Certifications']);
     // A linked title also carries a hidden "(opens in a new tab)", so compare how each one starts.
-    credentialNames.forEach((name, i) => expect(text[3 + i].startsWith(name), name).toBe(true));
-    expect(text).toHaveLength(3 + credentialNames.length);
+    credentialNames.forEach((name, i) => expect(text[2 + i].startsWith(name), name).toBe(true));
+    expect(text).toHaveLength(2 + credentialNames.length);
   });
 
   test('titles, issuers and dates line up across the cards of a row', async ({

@@ -92,7 +92,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
       // sweep of light crosses exactly the text, whatever the heading's width or alignment.
       document.addEventListener('pointerover', (event) => {
         const heading = (event.target as Element | null)?.closest(
-          '#hero h1, #projects h2, #journey h2, #skills h2, #contact h2',
+          '#hero h1, #work h2, #journey h2, #life h2, #contact h2',
         ) as HTMLElement | null;
         if (!heading) return;
         const range = document.createRange();

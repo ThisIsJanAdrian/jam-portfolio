@@ -12,11 +12,11 @@ async function gaps(page: Page) {
     const bottom = (s: string) =>
       document.querySelector(s)!.getBoundingClientRect().bottom + scrollY;
     return {
-      heroToProjects: top('#projects h2') - bottom('#hero'),
-      projectsToJourney: top('#journey h2') - bottom('#projects ul > li:last-child'),
-      journeyToSkills: top('#skills h2') - bottom('#journey'),
-      skillsToContact: top('#contact h2') - bottom('#skills'),
-      headingToContent: top('#projects ul > li') - bottom('#projects h2'),
+      heroToWork: top('#work h2') - bottom('#hero'),
+      workToJourney: top('#journey h2') - bottom('#work'),
+      journeyToLife: top('#life h2') - bottom('#journey'),
+      lifeToContact: top('#contact h2') - bottom('#life'),
+      headingToContent: top('#projects h3') - bottom('#work h2'),
       journeyEntries: [...document.querySelectorAll('[data-journey-item]')].map(
         (e) => e.getBoundingClientRect().height,
       ),
@@ -30,7 +30,7 @@ test.describe('desktop', () => {
 
   test('the gaps between sections are equal, and moderate', async ({ page }) => {
     const g = await gaps(page);
-    const between = [g.heroToProjects, g.projectsToJourney, g.journeyToSkills, g.skillsToContact];
+    const between = [g.heroToWork, g.workToJourney, g.journeyToLife, g.lifeToContact];
     for (const gap of between) {
       expect(gap, 'enough to separate sections').toBeGreaterThanOrEqual(64);
       expect(gap, 'not a wide empty band').toBeLessThanOrEqual(96);
@@ -61,12 +61,7 @@ test.describe('phone', () => {
 
   test('sections are closer together than on a desktop', async ({ page }) => {
     const g = await gaps(page);
-    for (const gap of [
-      g.heroToProjects,
-      g.projectsToJourney,
-      g.journeyToSkills,
-      g.skillsToContact,
-    ]) {
+    for (const gap of [g.heroToWork, g.workToJourney, g.journeyToLife, g.lifeToContact]) {
       expect(gap).toBeGreaterThanOrEqual(40);
       expect(gap).toBeLessThanOrEqual(56);
     }

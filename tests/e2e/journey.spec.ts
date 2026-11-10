@@ -78,7 +78,11 @@ test.describe('journey', () => {
     layout.rects.forEach((rect, i) => {
       // Tall enough that each picture stays in view for a while.
       const narrow = page.viewportSize()!.width < 640;
-      if (!narrow) expect(rect.height, `entry ${i} is a generous band`).toBeGreaterThanOrEqual(380);
+      // (The first and last entries have less padding on their outer side, to keep section gaps.)
+      const middle = i > 0 && i < layout.rects.length - 1;
+      if (!narrow && middle) {
+        expect(rect.height, `entry ${i} is a generous band`).toBeGreaterThanOrEqual(380);
+      }
       if (i > 0) {
         // Stacked directly one after another, none on top of another.
         expect(Math.abs(rect.top - layout.rects[i - 1].bottom)).toBeLessThanOrEqual(1);
