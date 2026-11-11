@@ -12,9 +12,9 @@ const linkClass =
 ---
 
 <footer class="border-t border-[var(--color-border)] text-[var(--color-muted)]">
-  <div class="box-gutter flex flex-col gap-3 py-8 text-small sm:flex-row sm:items-center sm:justify-between">
+  <div class="box-gutter flex items-center justify-between gap-3 py-8 text-small whitespace-nowrap">
     <p>{text}</p>
-    <ul class="flex items-center gap-5" aria-label="Elsewhere">
+    <ul class="flex items-center gap-3 sm:gap-5" aria-label="Elsewhere">
       <li>
         <ExternalLink href={site.links.github} class={linkClass}>
           GitHub

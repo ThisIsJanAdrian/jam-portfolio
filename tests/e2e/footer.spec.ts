@@ -45,16 +45,25 @@ test('the links sit on the right, beside the copyright, on a wide screen', async
   expect(Math.abs(links.x + links.width - (1440 - (1440 - 1152) / 2))).toBeLessThan(4);
 });
 
-test('on a phone the copyright and the links stack and nothing overflows', async ({ page }) => {
-  await page.setViewportSize({ width: 360, height: 740 });
-  const copyright = (await footer(page).getByText(/©/).boundingBox())!;
-  const links = (await footer(page).getByRole('list').boundingBox())!;
-  expect(links.y).toBeGreaterThan(copyright.y + copyright.height - 2);
-  expect(links.x + links.width).toBeLessThanOrEqual(360);
-  for (const link of await footer(page).getByRole('link').all()) {
-    expect((await link.boundingBox())!.height).toBeGreaterThanOrEqual(16);
-  }
-});
+// One line on a phone too, as on a desktop: the copyright on the left, the links on the right.
+for (const width of [360, 390]) {
+  test(`on a phone (${width}px) the footer is one line and nothing overflows`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 740 });
+    const copyright = (await footer(page).getByText(/©/).boundingBox())!;
+    const links = (await footer(page).getByRole('list').boundingBox())!;
+    expect(
+      Math.abs(links.y + links.height / 2 - (copyright.y + copyright.height / 2)),
+    ).toBeLessThan(6);
+    expect(links.x, 'the links are beside the copyright').toBeGreaterThan(
+      copyright.x + copyright.width,
+    );
+    expect(links.x + links.width).toBeLessThanOrEqual(width - 16);
+    expect(copyright.height, 'the copyright is one line').toBeLessThan(24);
+    for (const link of await footer(page).getByRole('link').all()) {
+      expect((await link.boundingBox())!.height).toBeGreaterThanOrEqual(16);
+    }
+  });
+}
 
 test('a link is underlined and darkens on hover', async ({ page }) => {
   const canHover = await page.evaluate(() => matchMedia('(hover: hover)').matches);

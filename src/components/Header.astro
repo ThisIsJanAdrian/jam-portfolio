@@ -14,7 +14,7 @@ const links = [
 // [data-nav-indicator] element, so it can glide from one link to another instead of fading.
 // Tighter padding below `sm` keeps the links and the theme toggle on a 360px phone.
 const linkClass =
-  'relative z-10 block rounded-full px-1 py-1.5 text-small transition-colors duration-300 motion-reduce:transition-none sm:px-3 [&:not([aria-current])]:hover:bg-[var(--color-surface)] aria-[current=location]:text-[var(--color-text)]';
+  'relative z-10 block rounded-full px-1.5 py-2 text-small sm:py-1.5 min-[380px]:px-3 transition-colors duration-300 motion-reduce:transition-none [&:not([aria-current])]:hover:bg-[var(--color-surface)] aria-[current=location]:text-[var(--color-text)]';
 ---
 
 <!--
@@ -25,7 +25,7 @@ const linkClass =
 <header class="pointer-events-none fixed inset-x-0 top-4 z-50 flex items-center justify-center gap-2 px-4">
   <nav
     aria-label="Main"
-    class="pointer-events-auto flex max-w-full items-center overflow-hidden rounded-full border border-[var(--color-border)] bg-[color-mix(in_srgb,var(--color-bg)_82%,transparent)] px-1 py-1.5 sm:px-2 shadow-lg backdrop-blur-md"
+    class="pointer-events-auto flex max-w-full items-center overflow-hidden rounded-full border border-[var(--color-border)] bg-[color-mix(in_srgb,var(--color-bg)_82%,transparent)] px-1.5 py-1.5 sm:px-2 shadow-lg backdrop-blur-md"
   >
     <div class="relative">
       <span
@@ -33,7 +33,7 @@ const linkClass =
         data-nav-indicator
         class="nav-indicator pointer-events-none absolute inset-y-0 left-0 w-0 rounded-full bg-[var(--color-pill)] opacity-0"
       ></span>
-      <ul class="flex items-center gap-0.5 sm:gap-1">
+      <ul class="flex items-center gap-0.5 min-[380px]:gap-1">
         {links.map((l) => (
           <li>
             <a href={l.href} data-section={l.section} class={linkClass}>
@@ -209,13 +209,17 @@ const linkClass =
       indicator.style.opacity = '0';
       return;
     }
-    const x = active.offsetLeft;
+    // Measured to a fraction of a pixel (offsetLeft and offsetWidth round to whole pixels, which left
+    // the pill up to a pixel off the true centre of a link whose width is fractional).
+    const box = indicator.parentElement!.getBoundingClientRect();
+    const rect = active.getBoundingClientRect();
+    const x = rect.left - box.left;
     if (placed) {
       const ms = Math.min(MAX_MS, Math.max(MIN_MS, 250 + Math.abs(x - lastX) * MS_PER_PX));
       indicator.style.setProperty('--slide-ms', `${Math.round(ms)}ms`);
     }
     lastX = x;
-    indicator.style.width = `${active.offsetWidth}px`;
+    indicator.style.width = `${rect.width}px`;
     indicator.style.transform = `translateX(${x}px)`;
     indicator.style.opacity = '1';
 

@@ -67,8 +67,26 @@ const pictureFor = (file?: string) =>
           <div class="journey-body" data-reveal>
             <h3 class="journey-title font-heading text-subheading">{item.title}</h3>
             <p class="journey-org">
-              {item.orgUrl ? <ExternalLink href={item.orgUrl}>{item.org}</ExternalLink> : item.org}
-              {item.location && <span class="journey-place"> · {item.location}</span>}
+              {item.orgUrl ? (
+                <ExternalLink href={item.orgUrl}>
+                  {item.org.slice(0, item.org.lastIndexOf(' ') + 1)}
+                  {/* The last word and the arrow never part: the arrow can't wrap onto a line alone. */}
+                  <span class="whitespace-nowrap">
+                    {item.org.slice(item.org.lastIndexOf(' ') + 1)}
+                    <span aria-hidden="true">&nbsp;&#8599;</span>
+                  </span>
+                </ExternalLink>
+              ) : (
+                item.org
+              )}
+              {item.location && (
+                <span class="journey-place">
+                  <span class="journey-sep" aria-hidden="true">
+                    {' · '}
+                  </span>
+                  {item.location}
+                </span>
+              )}
             </p>
             <ul class="journey-points text-small sm:text-body">
               {item.points.map((point) => (
@@ -468,6 +486,15 @@ const pictureFor = (file?: string) =>
     /* Tighter on phones (the text sizes come from the type scale). */
     .journey-org {
       margin-top: 0.375rem;
+    }
+
+    /* The location goes on its own line (no " · " between the two, as on desktop). */
+    .journey-place {
+      display: block;
+    }
+
+    .journey-sep {
+      display: none;
     }
 
     .journey-points {

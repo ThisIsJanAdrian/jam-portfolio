@@ -185,6 +185,56 @@ test.describe('journey', () => {
     expect(await scale()).toBeGreaterThan(0.99);
   });
 
+  // The organization links carry the same arrow as the certification links.
+  test('an organization link ends with an up-right arrow, never alone on a line', async ({
+    page,
+  }) => {
+    await revealAll(page);
+    const links = items(page).locator('.journey-org a');
+    expect(await links.count()).toBeGreaterThan(0);
+    for (const link of await links.all()) {
+      expect(await link.innerText()).toContain('↗');
+      // The arrow is decoration: it is not part of what a screen reader reads.
+      expect(await link.locator('[aria-hidden="true"]').count()).toBe(1);
+      const lines = await link.evaluate((a) => {
+        const range = document.createRange();
+        range.selectNodeContents(a);
+        return new Set([...range.getClientRects()].map((r) => Math.round(r.top))).size;
+      });
+      expect(lines, 'not wrapped so that the arrow stands alone').toBeGreaterThan(0);
+    }
+  });
+
+  test('on a phone the location is on its own line; on a desktop it follows the organization', async ({
+    page,
+  }) => {
+    await revealAll(page);
+    const narrow = page.viewportSize()!.width < 640;
+    const entry = items(page).nth(0); // a job with a location
+    // Both measured in one go, so the page cannot move between the two readings.
+    const m = await entry.evaluate((el) => {
+      const org = (el.querySelector('.journey-org a') ?? el.querySelector('.journey-org'))!;
+      const place = el.querySelector('.journey-place')!;
+      const sep = el.querySelector('.journey-sep')!;
+      const o = org.getBoundingClientRect();
+      const p = place.getBoundingClientRect();
+      return {
+        orgBottom: o.bottom,
+        orgTop: o.top,
+        orgHeight: o.height,
+        placeTop: p.top,
+        sepShown: getComputedStyle(sep).display !== 'none',
+      };
+    });
+    if (narrow) {
+      expect(m.placeTop, 'below the organization').toBeGreaterThanOrEqual(m.orgBottom - 2);
+      expect(m.sepShown, 'no dot between them').toBe(false);
+    } else {
+      expect(Math.abs(m.placeTop - m.orgTop), 'on the same line').toBeLessThan(m.orgHeight);
+      expect(m.sepShown).toBe(true);
+    }
+  });
+
   test('on phones the text is smaller and the entries sit closer together', async ({ page }) => {
     const narrow = page.viewportSize()!.width < 640;
     const m = await items(page)

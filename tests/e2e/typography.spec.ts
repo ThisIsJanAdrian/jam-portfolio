@@ -60,7 +60,7 @@ test.describe('typography', () => {
       });
     };
     const [phone, tablet, desktop] = [await sizesAt(360), await sizesAt(800), await sizesAt(1920)];
-    expect(phone.body).toBeCloseTo(15, 0);
+    expect(phone.body).toBeCloseTo(14, 0);
     expect(desktop.body).toBeCloseTo(16, 0);
     expect(phone.terminal).toBeCloseTo(12, 0);
     expect(desktop.terminal).toBeCloseTo(16, 0);
@@ -142,6 +142,39 @@ test.describe('typography', () => {
     // On a phone it keeps the smaller size, as before.
     await page.setViewportSize({ width: 360, height: 800 });
     expect(await px('#work h2')).toBeCloseTo(25.9, 0);
+  });
+
+  test('on a phone the reading text keeps the desktop proportions, and nothing is under 12px', async ({
+    page,
+  }) => {
+    const sizes = async (width: number) => {
+      await page.setViewportSize({ width, height: 800 });
+      await page.goto('/');
+      return page.evaluate(() => {
+        const px = (sel: string) =>
+          parseFloat(getComputedStyle(document.querySelector(sel)!).fontSize);
+        return {
+          body: px('body'),
+          nav: px('nav[aria-label="Main"] a'),
+          footer: px('footer p'),
+          card: px('#projects li p:not(.tech-tag)'),
+        };
+      });
+    };
+    const phone = await sizes(360);
+    const desktop = await sizes(1920);
+    // The nav and the footer are "small" text: about 0.875 of the body, on a phone as on a desktop.
+    for (const key of ['nav', 'footer'] as const) {
+      expect(phone[key] / phone.body, `${key} relative to the body, phone`).toBeCloseTo(
+        desktop[key] / desktop.body,
+        1,
+      );
+      expect(phone[key], `${key} is not too small`).toBeGreaterThanOrEqual(12);
+    }
+    expect(phone.body).toBeLessThan(desktop.body); // a little smaller than the desktop text
+    expect(phone.body).toBeGreaterThanOrEqual(13.9);
+    expect(phone.card, 'text inside the cards').toBeLessThan(desktop.card);
+    expect(phone.card).toBeGreaterThanOrEqual(12);
   });
 
   test('a project page title is bigger than its section headings', async ({ page }) => {
@@ -247,14 +280,12 @@ test.describe('typography', () => {
         }
         return [...found.entries()].sort((a, b) => b[0] - a[0]);
       });
-      // 12 label/terminal, 12.5 caption, 14 small/data, 15-16 body, 18-20 lead, 21.6-25 subheading,
+      // 12 label/terminal/caption, 12.5-14 small/data, 14-16 body, 17-20 lead, 21.6-25 subheading,
       // 25.9-39.1 heading, 31.1-48.8 title, the hero name (display, shrunk to fit).
       const allowed = (px: number) =>
         px === 12 ||
-        (px >= 12.5 && px <= 12.8) ||
-        px === 14 ||
-        (px >= 15 && px <= 16) ||
-        (px >= 18 && px <= 20) ||
+        (px >= 12.5 && px <= 16) ||
+        (px >= 17 && px <= 20) ||
         (px >= 21.6 && px <= 25) ||
         (px >= 25.9 && px <= 61);
       const stray = sizes.filter(([px]) => !allowed(px));

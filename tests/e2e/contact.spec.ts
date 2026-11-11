@@ -48,3 +48,15 @@ test('the button is large enough to tap and readable (contrast is covered by the
   expect(box.height).toBeGreaterThanOrEqual(44);
   expect(box.width).toBeGreaterThanOrEqual(44);
 });
+
+test('on a phone the "Get in touch" line is the same size as the paragraphs in the cards', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 800 });
+  await page.goto('/');
+  const sizes = await page.evaluate(() => {
+    const px = (sel: string) => getComputedStyle(document.querySelector(sel)!).fontSize;
+    return { contact: px('#contact p'), card: px('#life li p') };
+  });
+  expect(sizes.contact).toBe(sizes.card);
+});

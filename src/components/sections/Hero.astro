@@ -162,9 +162,11 @@ const nameEm = displayName.length * NAME_EM_PER_CHARACTER;
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   if (layer && hero) {
-    const MAX_LAG_PX = 40; // the furthest it appears to trail (fast scrolls ease towards this)
-    const FOLLOW = 0.15; // how much of the gap it closes per frame at 60fps: lower = later to react
-    const CHASE_LIMIT_PX = MAX_LAG_PX * 1.5; // so catching up after a huge jump stays quick
+    // On a phone the terminal is nearly as wide as the screen and scrolling is by finger, so it
+    // trails far less and catches up sooner: a long lag there reads as stutter, not as float.
+    const phone = window.matchMedia('(max-width: 639px)');
+    const lagPx = () => (phone.matches ? 12 : 40); // the furthest it appears to trail
+    const follow = () => (phone.matches ? 0.4 : 0.15); // share of the gap closed per frame at 60fps
 
     let smoothed = window.scrollY; // the delayed scroll position the terminal is "at"
     let lastTime = performance.now();
@@ -191,7 +193,9 @@ const nameEm = displayName.length * NAME_EM_PER_CHARACTER;
 
       // Chase the real scroll position, closing a fixed share of the gap each frame (frame-rate
       // independent), but never lagging further than CHASE_LIMIT_PX.
-      const share = 1 - Math.pow(1 - FOLLOW, dt / 16.67);
+      const MAX_LAG_PX = lagPx();
+      const CHASE_LIMIT_PX = MAX_LAG_PX * 1.5; // so catching up after a huge jump stays quick
+      const share = 1 - Math.pow(1 - follow(), dt / 16.67);
       smoothed += (y - smoothed) * share;
       let lag = y - smoothed; // positive while scrolling down
       lag = Math.max(-CHASE_LIMIT_PX, Math.min(CHASE_LIMIT_PX, lag));
