@@ -77,3 +77,24 @@ for (const path of ['/', '/projects/personal-blog']) {
     expect(overflow).toBeLessThanOrEqual(0);
   });
 }
+
+// The favicon is the photo: every icon the page declares must exist and be a real image.
+test('the favicon and the home-screen icon are declared and served', async ({ page, request }) => {
+  await page.goto('/');
+  const hrefs = await page
+    .locator('link[rel~="icon"], link[rel="apple-touch-icon"]')
+    .evaluateAll((links) => links.map((l) => l.getAttribute('href')!));
+  expect(hrefs).toEqual(
+    expect.arrayContaining([
+      '/favicon-32.png',
+      '/favicon-192.png',
+      '/favicon.ico',
+      '/apple-touch-icon.png',
+    ]),
+  );
+  for (const href of hrefs) {
+    const res = await request.get(href);
+    expect(res.status(), href).toBe(200);
+    expect(res.headers()['content-type'], href).toMatch(/image\//);
+  }
+});

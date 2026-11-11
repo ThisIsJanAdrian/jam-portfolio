@@ -60,3 +60,22 @@ test('on a phone the "Get in touch" line is the same size as the paragraphs in t
   });
   expect(sizes.contact).toBe(sizes.card);
 });
+
+// The "Get in touch" line reads like the Journey bullet points: the same size on a phone and on a
+// desktop.
+for (const [name, width] of [
+  ['a phone', 390],
+  ['a desktop', 1440],
+] as const) {
+  test(`on ${name} the "Get in touch" line is the same size as the Journey bullet points`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/');
+    const sizes = await page.evaluate(() => {
+      const px = (sel: string) => getComputedStyle(document.querySelector(sel)!).fontSize;
+      return { contact: px('#contact p'), bullet: px('.journey-points li') };
+    });
+    expect(sizes.contact).toBe(sizes.bullet);
+  });
+}

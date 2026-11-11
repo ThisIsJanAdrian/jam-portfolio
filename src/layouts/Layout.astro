@@ -22,7 +22,13 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- The favicon is a rounded-square crop of the close-up photo (jam2_fav_compressed_2.jpg, kept outside git), made into the files
+         in public/: favicon-32.png, favicon-192.png, favicon.ico (old browsers) and the square
+         apple-touch-icon.png (iPhone home screen). -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="sitemap" href="/sitemap-index.xml" />
     <!-- Heading and body fonts are preloaded (visible on first paint). The mono font is only used
          for small labels further down, so it is left to load on demand. -->
