@@ -41,8 +41,8 @@ test('the links sit on the right, beside the copyright, on a wide screen', async
   expect(Math.abs(links.y + links.height / 2 - (copyright.y + copyright.height / 2))).toBeLessThan(
     6,
   );
-  // Right-aligned with the page's content column (max width 72rem, 1.5rem side padding).
-  expect(Math.abs(links.x + links.width - (1440 - (1440 - 1152) / 2 - 24))).toBeLessThan(4);
+  // Right-aligned with the page's content column (max width 72rem, centred: 144px each side at 1440px).
+  expect(Math.abs(links.x + links.width - (1440 - (1440 - 1152) / 2))).toBeLessThan(4);
 });
 
 test('on a phone the copyright and the links stack and nothing overflows', async ({ page }) => {

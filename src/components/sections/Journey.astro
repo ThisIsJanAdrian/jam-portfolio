@@ -25,7 +25,7 @@ const pictureFor = (file?: string) =>
   line moves to the left and everything stacks beside it.
 -->
 <section id="journey" data-spy aria-labelledby="journey-title">
-  <div class="mx-auto max-w-6xl px-6 pt-12 sm:pt-20">
+  <div class="box-gutter pt-12 sm:pt-20">
     <h2 id="journey-title" data-reveal>
       Journey
     </h2>
@@ -84,7 +84,10 @@ const pictureFor = (file?: string) =>
 
 <style>
   .journey-wrap {
-    --edge: max(1.5rem, calc((100% - 72rem) / 2)); /* left edge of the page's content column */
+    --edge: max(
+      var(--gutter),
+      calc((100% - 72rem) / 2)
+    ); /* left edge of the page's content column */
     --rail-width: 3.5rem; /* the middle column that holds the line and the dots */
     --dot-size: 2rem;
     --dot-gap: 2rem; /* breathing room between the dot and the text, and between the dot and the year */

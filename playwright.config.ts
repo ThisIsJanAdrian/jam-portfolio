@@ -18,7 +18,11 @@ export default defineConfig({
   },
   // Cross-browser and mobile coverage.
   projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    // Desktop is 1920x1080: the size the page is designed at (the root font is 16px from there up).
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1920, height: 1080 } },
+    },
     { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
     { name: 'webkit', use: { ...devices['Desktop Safari'] } },
     { name: 'mobile-chrome', use: { ...devices['Pixel 7'] } },

@@ -59,7 +59,7 @@ test.describe('typography', () => {
         };
       });
     };
-    const [phone, tablet, desktop] = [await sizesAt(360), await sizesAt(800), await sizesAt(1440)];
+    const [phone, tablet, desktop] = [await sizesAt(360), await sizesAt(800), await sizesAt(1920)];
     expect(phone.body).toBeCloseTo(15, 0);
     expect(desktop.body).toBeCloseTo(16, 0);
     expect(phone.terminal).toBeCloseTo(12, 0);
@@ -71,7 +71,7 @@ test.describe('typography', () => {
     expect(tablet.terminal).toBeLessThan(desktop.terminal);
   });
 
-  test('the hero name follows the display role: 45px on a phone up to 61px on a desktop', async ({
+  test('the hero name follows the display role: 45px on a phone up to 61px on a desktop (1920px)', async ({
     page,
   }) => {
     await page.goto('/');
@@ -80,7 +80,7 @@ test.describe('typography', () => {
       return page.locator('h1').evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
     };
     // It may be shrunk to fit its column, but never grows beyond the role.
-    expect(await sizeAt(1440)).toBeCloseTo(61, 0);
+    expect(await sizeAt(1920)).toBeCloseTo(61, 0);
     expect(await sizeAt(360)).toBeLessThanOrEqual(44.8 + 0.5);
     expect(await sizeAt(360)).toBeGreaterThan(24);
   });
@@ -88,7 +88,7 @@ test.describe('typography', () => {
   test('the roles step down: display > heading > subheading > lead > body > small > label', async ({
     page,
   }) => {
-    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.setViewportSize({ width: 1920, height: 900 });
     await page.goto('/');
     const sizes = await page.evaluate(() => {
       const px = (sel: string) =>
@@ -114,7 +114,7 @@ test.describe('typography', () => {
   test('a Journey entry is clearly below the section heading (the hierarchy is not flat)', async ({
     page,
   }) => {
-    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.setViewportSize({ width: 1920, height: 900 });
     await page.goto('/');
     const [section, entry] = await page.evaluate(() =>
       ['#journey h2', '.journey-title'].map((s) =>
@@ -127,7 +127,7 @@ test.describe('typography', () => {
   test('on a desktop a section heading is clearly bigger than the subheadings under it', async ({
     page,
   }) => {
-    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.setViewportSize({ width: 1920, height: 900 });
     await page.goto('/');
     const px = (selector: string) =>
       page
@@ -145,7 +145,7 @@ test.describe('typography', () => {
   });
 
   test('a project page title is bigger than its section headings', async ({ page }) => {
-    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.setViewportSize({ width: 1920, height: 900 });
     await page.goto('/projects/personal-blog');
     const px = (selector: string) =>
       page
@@ -158,7 +158,7 @@ test.describe('typography', () => {
   test('large text is tight and small text is airy; display type is tightened, labels opened', async ({
     page,
   }) => {
-    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.setViewportSize({ width: 1920, height: 900 });
     await page.goto('/');
     const m = await page.evaluate(() => {
       const read = (sel: string) => {
@@ -194,7 +194,7 @@ test.describe('typography', () => {
     test(`no text on ${path} asks for a font weight that is not loaded`, async ({ page }) => {
       await page.goto(path);
       await page.evaluate(() => document.fonts.ready);
-      for (const width of [360, 1440]) {
+      for (const width of [360, 1920]) {
         await page.setViewportSize({ width, height: 900 });
         const bad = await page.evaluate(() => {
           const loaded: Record<string, number[]> = {
@@ -231,7 +231,7 @@ test.describe('typography', () => {
   test("every text size on the page is one of the scale's sizes", async ({ page }) => {
     await page.goto('/');
     await page.evaluate(() => document.fonts.ready);
-    for (const width of [360, 1440]) {
+    for (const width of [360, 1920]) {
       await page.setViewportSize({ width, height: 900 });
       const sizes = await page.evaluate(() => {
         const found = new Map<number, string>();
