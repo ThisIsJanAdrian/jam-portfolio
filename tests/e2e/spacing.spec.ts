@@ -52,7 +52,7 @@ test.describe('desktop', () => {
 
   test('the whole page is compact', async ({ page }) => {
     const g = await gaps(page);
-    expect(g.page).toBeLessThan(5200);
+    expect(g.page).toBeLessThan(5600); // Work, Journey, Life and Contact on one 1920px-wide page
   });
 });
 

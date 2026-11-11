@@ -1,11 +1,52 @@
 ---
-// PLACEHOLDERS: replace the title and text of each card with your own values.
-const values = [
-  { title: 'Value one', text: 'A short line about it goes here.' },
-  { title: 'Value two', text: 'A short line about it goes here.' },
-  { title: 'Value three', text: 'A short line about it goes here.' },
-  { title: 'Value four', text: 'A short line about it goes here.' },
+import ExternalLink from '../ExternalLink.astro';
+
+// Each card: a title, an icon (one of the keys of `icons` below) and a short text. `link` turns the
+// phrase `label` inside the text into a link.
+const values: {
+  title: string;
+  icon: 'faith' | 'music' | 'poetry' | 'sports';
+  text: string;
+  link?: { label: string; href: string };
+}[] = [
+  {
+    title: 'Faith',
+    icon: 'faith',
+    text: "I wouldn't be where I am today without the grace of God. The Bible keeps me rooted in the truth as I walk with Christ. In my free time, I connect with people and support them in their relationship with God.",
+  },
+  {
+    title: 'Music',
+    icon: 'music',
+    text: "My favorite creative outlet, and a universal language. I play guitar and piano, and sometimes program and compose electronic music. While you're here, feel free to check out my Spotify page.",
+    link: {
+      label: 'Spotify page',
+      href: 'https://open.spotify.com/artist/2HKiqhTRhhEwSMWdz9QL79',
+    },
+  },
+  {
+    title: 'Poetry',
+    icon: 'poetry',
+    text: 'My other creative outlet, a way of processing thoughts and emotions clearly. They say the pen is mightier than the sword; I say mighty is the one who knows when to wield which.',
+  },
+  {
+    title: 'Sports',
+    icon: 'sports',
+    text: "I may not be the athletic type, but you don't have to be good at something to enjoy it. Whenever I can, I play table tennis, badminton, basketball, billiards, and chess (for the record, it's a sport).",
+  },
 ];
+
+// Simple outline icons (24x24, 2px stroke; most from Lucide, ISC licence).
+const icons = {
+  faith: '<path d="M12 2v20"/><path d="M6 8h12"/>',
+  music: '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
+  poetry:
+    '<path d="M12.67 19a2 2 0 0 0 1.416-.588l6.154-6.172a6 6 0 0 0-8.49-8.49L5.586 9.914A2 2 0 0 0 5 11.328V18a1 1 0 0 0 1 1z"/><path d="M16 8 2 22"/><path d="M17.5 15H9"/>',
+  sports:
+    '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>',
+};
+
+// Split a text around its link phrase: [before, after].
+const parts = (v: (typeof values)[number]) => (v.link ? v.text.split(v.link.label) : [v.text]);
 ---
 
 <!--
@@ -22,10 +63,34 @@ const values = [
       {values.map((v) => (
         <li
           data-reveal
-          class="hover-card rounded-2xl border border-[var(--color-border)] p-4 sm:p-6"
+          class="hover-card rounded-2xl border border-[var(--color-border)] p-4 sm:p-8"
         >
-          <h3 class="text-body font-semibold leading-snug">{v.title}</h3>
-          <p class="mt-1.5 text-small text-[var(--color-muted)] sm:mt-2">{v.text}</p>
+          <h3 class="text-center font-heading text-subheading mt-4">{v.title}</h3>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+            class="mx-auto mt-6 size-16 text-[var(--color-muted)] sm:mt-10 sm:size-14"
+            set:html={icons[v.icon]}
+          />
+          <p class="mt-6 text-center text-small text-[var(--color-muted)] sm:mt-10">
+            {parts(v)[0]}
+            {v.link && (
+              <>
+                <ExternalLink
+                  href={v.link.href}
+                  class="text-[var(--color-text)] underline underline-offset-2 hover:text-[var(--color-accent)]"
+                >
+                  {v.link.label}
+                </ExternalLink>
+                {parts(v)[1]}
+              </>
+            )}
+          </p>
         </li>
       ))}
     </ul>

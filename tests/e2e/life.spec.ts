@@ -38,3 +38,24 @@ test.describe('phone', () => {
     expect(await columns(page)).toBe(2);
   });
 });
+
+test('each card has a title, an icon between it and the text, and the Spotify link works', async ({
+  page,
+}) => {
+  await page.goto('/');
+  const order = await cards(page).evaluateAll((lis) =>
+    lis.map((li) => [...li.children].map((c) => c.tagName.toLowerCase())),
+  );
+  for (const tags of order) expect(tags).toEqual(['h3', 'svg', 'p']);
+
+  const link = page.locator('#life').getByRole('link', { name: /Spotify page/ });
+  await expect(link).toHaveAttribute(
+    'href',
+    'https://open.spotify.com/artist/2HKiqhTRhhEwSMWdz9QL79',
+  );
+  await expect(link).toHaveAttribute('target', '_blank');
+  await expect(link).toHaveAttribute('rel', /noopener/);
+  // It sits inside the Music text, which reads on both sides of it.
+  const text = await link.locator('xpath=ancestor::p').innerText();
+  expect(text).toContain('feel free to check out my Spotify page');
+});
