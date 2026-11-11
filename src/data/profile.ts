@@ -128,13 +128,11 @@ export const skills: Skill[] = [
   { name: 'Tailwind CSS', disciplines: ['swe'] },
   { name: 'Laravel', disciplines: ['swe'] },
   { name: 'Playwright', disciplines: ['qa'] },
-  { name: 'Selenium WebDriver', disciplines: ['qa'] },
+  { name: 'Selenium', disciplines: ['qa'] },
   { name: 'WebDriverIO', disciplines: ['qa'] },
   { name: 'Mocha', disciplines: ['qa'] },
   { name: 'Appium', disciplines: ['qa'] },
   { name: 'Postman', disciplines: ['qa', 'swe'] },
-  { name: 'Apache JMeter', disciplines: ['qa'] },
-  { name: 'Lighthouse CI', disciplines: ['qa', 'swe'] },
   { name: 'Claude Code', disciplines: ['qa', 'ai'] },
   { name: 'ChromaDB', disciplines: ['ai'] },
   { name: 'Transformers', disciplines: ['ai'] },
@@ -149,8 +147,8 @@ export const skills: Skill[] = [
   { name: 'GitLab', disciplines: ['qa', 'swe', 'ai'] },
   { name: 'Maven', disciplines: ['qa', 'swe'] },
   { name: 'Eclipse', disciplines: ['qa', 'swe'] },
-  { name: 'Microsoft Word', disciplines: ['qa'] },
-  { name: 'Microsoft Excel', disciplines: ['qa'] },
+  { name: 'MS Word', disciplines: ['qa'] },
+  { name: 'MS Excel', disciplines: ['qa'] },
 ];
 
 /** "2026-06" -> "June 2026". Throws on malformed input so bad data fails the build and tests. */

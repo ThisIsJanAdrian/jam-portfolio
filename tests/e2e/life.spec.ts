@@ -1,8 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { revealAll, settle } from './helpers';
 
-// Life: four placeholder cards (to be filled in later), side by side on a desktop, two by two on a
-// phone.
+// Life: four placeholder cards (to be filled in later), side by side on a desktop, stacked on a phone.
 const cards = (page: Page) => page.locator('#life ul > li');
 
 async function columns(page: Page) {
@@ -34,8 +33,54 @@ test.describe('desktop', () => {
 test.describe('phone', () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
-  test('the cards are laid out two by two', async ({ page }) => {
-    expect(await columns(page)).toBe(2);
+  test('on a phone a card title is as big as a certification title, and the icon has side room', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    const m = await page.evaluate(() => {
+      const size = (sel: string) => getComputedStyle(document.querySelector(sel)!).fontSize;
+      const li = document.querySelector('#life ul > li')!;
+      const svg = li.querySelector('svg')!;
+      return {
+        life: size('#life h3'),
+        cert: size('#skills h4'),
+        iconFromEdge: svg.getBoundingClientRect().left - li.getBoundingClientRect().left,
+      };
+    });
+    expect(m.life).toBe(m.cert);
+    expect(m.iconFromEdge, 'space left of the icon').toBeGreaterThanOrEqual(24);
+  });
+
+  test('the cards stack, each with the icon on the left and the text beside it', async ({
+    page,
+  }) => {
+    expect(await columns(page), 'one column').toBe(1);
+    const m = await cards(page)
+      .first()
+      .evaluate((li) => {
+        const box = (sel: string) => li.querySelector(sel)!.getBoundingClientRect();
+        const align = (sel: string) => getComputedStyle(li.querySelector(sel)!).textAlign;
+        const card = li.getBoundingClientRect();
+        return {
+          icon: box('svg'),
+          title: box('h3'),
+          text: box('p'),
+          card,
+          titleAlign: align('h3'),
+          textAlign: align('p'),
+        };
+      });
+    expect(m.icon.width, 'the icon is small on a phone').toBeLessThanOrEqual(36);
+    expect(m.icon.right, 'the icon is left of the title').toBeLessThanOrEqual(m.title.left);
+    expect(m.icon.right, 'and of the text').toBeLessThanOrEqual(m.text.left);
+    expect(Math.abs(m.title.left - m.text.left), 'title and text share a left edge').toBeLessThan(
+      2,
+    );
+    expect(['left', 'start']).toContain(m.titleAlign);
+    expect(['left', 'start']).toContain(m.textAlign);
+    // The icon sits in the vertical middle of the card.
+    const iconMid = m.icon.top + m.icon.height / 2;
+    expect(Math.abs(iconMid - (m.card.top + m.card.height / 2))).toBeLessThan(8);
   });
 });
 

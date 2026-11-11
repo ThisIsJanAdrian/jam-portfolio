@@ -141,6 +141,31 @@ test('the highlight sits exactly under the active link', async ({ page }) => {
   }
 });
 
+// The highlight is centred on its link and the link's text: measured to a fraction of a pixel.
+test('the highlight is centred on the text of the active link', async ({ page }) => {
+  await page.goto('/');
+  const nav = page.getByRole('navigation', { name: 'Main' });
+  for (const name of ['Work', 'Journey', 'Life', site.nickname]) {
+    await nav.getByRole('link', { name, exact: true }).click();
+    await settle(page);
+    const m = await page.evaluate(() => {
+      const indicator = document.querySelector('[data-nav-indicator]')!.getBoundingClientRect();
+      const link = document.querySelector('a[aria-current]')!;
+      const range = document.createRange();
+      range.selectNodeContents(link);
+      const text = range.getBoundingClientRect();
+      return {
+        dx: indicator.left + indicator.width / 2 - (text.left + text.width / 2),
+        dy: indicator.top + indicator.height / 2 - (text.top + text.height / 2),
+        dw: indicator.width - link.getBoundingClientRect().width,
+      };
+    });
+    expect(Math.abs(m.dx), `${name}: horizontal`).toBeLessThan(0.3);
+    expect(Math.abs(m.dy), `${name}: vertical`).toBeLessThan(1);
+    expect(Math.abs(m.dw), `${name}: width`).toBeLessThan(0.3);
+  }
+});
+
 test('nav stays visible while scrolling', async ({ page }) => {
   await page.goto('/');
   await page.locator('#contact').scrollIntoViewIfNeeded();
@@ -253,3 +278,42 @@ test('at the bottom of the page the last link stays highlighted, and it leaves a
     'location',
   );
 });
+
+// On a phone the nav links get more room, but the bar and the theme button must still fit on the
+// screen, side by side, with a margin to the edges.
+for (const width of [320, 360, 390, 430]) {
+  test(`the nav and the theme toggle fit on a ${width}px phone, with room between the links`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 800 });
+    await page.goto('/');
+    const m = await page.evaluate(() => {
+      const nav = document.querySelector('nav[aria-label="Main"]')!.getBoundingClientRect();
+      const toggle = document.querySelector('[data-theme-toggle]')!.getBoundingClientRect();
+      const links = [...document.querySelectorAll('nav[aria-label="Main"] a')].map((a) =>
+        a.getBoundingClientRect(),
+      );
+      const gaps = links.slice(1).map((r, i) => r.left - links[i].right);
+      const padding = links.map((r, i) => {
+        const text = document.createRange();
+        text.selectNodeContents(document.querySelectorAll('nav[aria-label="Main"] a')[i]);
+        const t = text.getBoundingClientRect();
+        return t.left - r.left;
+      });
+      return {
+        navLeft: nav.left,
+        toggleRight: toggle.right,
+        navRight: nav.right,
+        toggleLeft: toggle.left,
+        gaps,
+        padding,
+      };
+    });
+    expect(m.navLeft).toBeGreaterThanOrEqual(8);
+    expect(m.toggleRight).toBeLessThanOrEqual(width - 8);
+    expect(m.navRight, 'the bar and the toggle do not overlap').toBeLessThanOrEqual(m.toggleLeft);
+    // At 380px and up the links have clear room around their text.
+    if (width >= 380) for (const p of m.padding) expect(p).toBeGreaterThanOrEqual(11);
+    else for (const p of m.padding) expect(p).toBeGreaterThanOrEqual(5);
+  });
+}

@@ -36,8 +36,9 @@
  * ratio is 1.2 on a 360px phone, growing to 1.25 at 1440px, so the steps are fluid: every size
  * below is a clamp() that moves smoothly between its phone and desktop value (the formula is
  * Utopia's, utopia.fyi). The unit stays rem, with a rem term inside each clamp(), so browser zoom
- * and a larger default font size still scale the text. Small sizes are fixed: at 12 to 14px there is
- * too little room to vary.
+ * and a larger default font size still scale the text. On a phone the reading sizes keep the same
+ * proportions to each other as on a desktop (body 14 / 16, small 12.5 / 14), but nothing goes below
+ * 12px: smaller than that is too small to read.
  *
  *   step   phone -> desktop    role
  *     6    44.8 -> 61px        display      the name in the hero
@@ -46,12 +47,12 @@
  *                                           desktop size step 4, so on a desktop they stand well
  *                                           clear of the 25px subheadings below
  *     2    21.6 -> 25px        subheading   a Journey entry, "Stack", "Certifications"
- *     1    18   -> 20px        lead         the line that introduces something
- *     0    15   -> 16px        body         everything that is read
- *    -1    12.5 -> 12.8px      caption      pills and buttons on phones
- *   fixed  14px                small        the footer, nav, chips and secondary lines
+ *     1    17   -> 20px        lead         the line that introduces something
+ *     0    14   -> 16px        body         everything that is read
+ *    -1    12   -> 12.8px      caption      pills and buttons on phones
+ *   fluid  12.5 -> 14px        small        the footer, nav, chips and secondary lines
  *   fixed  12px                label        mono, uppercase, wide tracking (the tech tags)
- *   fixed  14px                data         mono: years, dates
+ *   fluid  12.5 -> 14px        data         mono: years, dates
  *   fluid  12 -> 16px          terminal     mono: the hero terminal
  *
  * Line-height falls as size grows (big headings are tight, body text airy) and letter-spacing goes
@@ -79,19 +80,19 @@
   --text-subheading--letter-spacing: -0.015em;
   --text-subheading--font-weight: 700;
 
-  --text-lead: clamp(1.125rem, 1.083rem + 0.185vw, 1.25rem);
+  --text-lead: clamp(1.063rem, 1rem + 0.278vw, 1.25rem);
   --text-lead--line-height: 1.5;
   --text-lead--letter-spacing: 0;
 
-  --text-body: clamp(0.938rem, 0.917rem + 0.093vw, 1rem);
+  --text-body: clamp(0.875rem, 0.833rem + 0.185vw, 1rem);
   --text-body--line-height: 1.6;
   --text-body--letter-spacing: 0;
 
-  --text-caption: clamp(0.781rem, 0.775rem + 0.028vw, 0.8rem);
+  --text-caption: clamp(0.75rem, 0.733rem + 0.074vw, 0.8rem);
   --text-caption--line-height: 1.4;
   --text-caption--letter-spacing: 0;
 
-  --text-small: 0.875rem;
+  --text-small: clamp(0.781rem, 0.75rem + 0.139vw, 0.875rem);
   --text-small--line-height: 1.5;
   --text-small--letter-spacing: 0;
 
@@ -100,7 +101,7 @@
   --text-label--letter-spacing: 0.08em;
   --text-label--font-weight: 500;
 
-  --text-data: 0.875rem;
+  --text-data: clamp(0.781rem, 0.75rem + 0.139vw, 0.875rem);
   --text-data--line-height: 1.4;
   --text-data--letter-spacing: 0;
 
