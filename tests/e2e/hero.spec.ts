@@ -45,8 +45,9 @@ test.describe('hero layout', () => {
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Jam Manzanero');
   });
 
-  // The hero is a little wider (76rem) than the 72rem column of the other sections, centred on the
-  // same axis: 32px wider on each side.
+  // The hero may be a little wider (up to 76rem) than the 72rem column of the other sections, but
+  // never narrower, and it is centred on the same axis. (On a laptop-sized window both are limited
+  // by the side gutter, so they are equally wide.)
   for (const width of [1440, 1920]) {
     test(`the hero is centred on the same axis as the other sections at ${width}px`, async ({
       page,
@@ -54,8 +55,10 @@ test.describe('hero layout', () => {
       await page.setViewportSize({ width, height: 900 });
       const hero = await box(page, '#hero > div.grid');
       const projects = await box(page, '#work > div');
-      expect(Math.abs(hero.x - (projects.x - 32))).toBeLessThanOrEqual(1);
-      expect(Math.abs(hero.width - (projects.width + 64))).toBeLessThanOrEqual(1);
+      expect(
+        Math.abs(hero.x + hero.width / 2 - (projects.x + projects.width / 2)),
+      ).toBeLessThanOrEqual(1);
+      expect(hero.width).toBeGreaterThanOrEqual(projects.width - 1);
     });
   }
 

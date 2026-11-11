@@ -110,6 +110,32 @@
 }
 
 /*
+ * The minimum space between the content and the left and right edges of the window, used by every
+ * section, the footer and the other pages (class `px-gutter`). It matters at 100% browser zoom and
+ * above, where the window is fewer CSS pixels wide, so content must never run up to an edge.
+ */
+:root {
+  --gutter: 1.5rem;
+}
+@media (min-width: 640px) {
+  :root {
+    --gutter: 2.5rem;
+  }
+}
+/* (No automatic scaling of the page with the window width: it would cancel the browser's own zoom,
+   so Ctrl+ and Ctrl- would stop doing anything. A visitor on a scaled laptop screen can zoom out.) */
+.px-gutter {
+  padding-inline: var(--gutter);
+}
+/* A centred column no wider than --max (72rem unless set) that always leaves the gutter free at both
+   sides. Use it where a block has a max width AND needs the gutter: with padding inside the
+   max width, a big gutter would squeeze the content instead of the empty space. */
+.box-gutter {
+  width: min(var(--max, 72rem), calc(100% - 2 * var(--gutter)));
+  margin-inline: auto;
+}
+
+/*
  * Dark mode follows the OS setting until the visitor uses the toggle in the nav, which sets
  * data-theme="light" or "dark" on <html> (and remembers it). The two dark blocks hold the same
  * values: one for the OS setting, one for the toggle.

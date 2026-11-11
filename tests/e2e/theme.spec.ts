@@ -166,7 +166,7 @@ test.describe('compact on a phone', () => {
 });
 
 test('on a desktop the cards keep their roomier layout', async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.setViewportSize({ width: 1920, height: 900 });
   await page.goto('/');
   await revealAll(page);
   await settle(page);

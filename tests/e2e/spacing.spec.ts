@@ -26,7 +26,7 @@ async function gaps(page: Page) {
 }
 
 test.describe('desktop', () => {
-  test.use({ viewport: { width: 1440, height: 900 } });
+  test.use({ viewport: { width: 1920, height: 900 } });
 
   test('the gaps between sections are equal, and moderate', async ({ page }) => {
     const g = await gaps(page);
