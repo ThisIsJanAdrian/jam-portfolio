@@ -6,7 +6,7 @@ import { roles } from '../../data/roles';
 import { shortName } from '../../utils/names';
 // Imported from src/assets so Astro resizes and converts it at build time (a ~3000px, 700 KB
 // photo becomes small WebP files at the sizes actually displayed).
-import headshot from '../../assets/jam2_compressed.jpg';
+import headshot from '../../assets/jam2_compressed_2.jpg';
 
 // "Jam Manzanero": the nickname plus the last name (site.name itself is left alone).
 const displayName = shortName(site);
@@ -65,20 +65,14 @@ const nameEm = displayName.length * NAME_EM_PER_CHARACTER;
         data-roles={JSON.stringify(roles)}
         class="mt-2 flex min-h-[1lh] items-center justify-center text-body font-semibold tracking-widest text-[var(--color-accent)] uppercase"
       >
-        <!-- Screen readers get all the roles at once; the typing is decoration. The short role below
-             (data-role-static) is what shows with reduced motion or without JavaScript. Otherwise
-             CSS hides it from the first paint and the line starts blank (see the styles). -->
+        <!-- Screen readers get all the roles at once; the revealed words are decoration. The short role
+             below (data-role-static) is what shows with reduced motion or without JavaScript.
+             Otherwise CSS hides it from the first paint and the line starts blank (see the styles). -->
         <span class="sr-only">{roles.join(', ')}</span>
         <span aria-hidden="true" data-role-static>
           {site.role}
         </span>
         <span aria-hidden="true" data-role-text></span>
-        <span
-          aria-hidden="true"
-          data-role-cursor
-          hidden
-          class="terminal-cursor ml-0.5 inline-block h-[1.1em] w-[2px] bg-current"
-        ></span>
       </p>
     </div>
 
@@ -107,6 +101,93 @@ const nameEm = displayName.length * NAME_EM_PER_CHARACTER;
   @media (prefers-reduced-motion: no-preference) {
     :global(.js) [data-role-static] {
       display: none;
+    }
+  }
+
+  /* The role reveal. Two thin bars of the text colour start together in the middle of the word and
+     move apart to its two ends, and the word is wiped in between them, from the middle outwards (a
+     reveal); later the bars travel back and meet in the middle, wiping the word out (a hide).
+     Everything follows one number, --role-p (0 = both bars in the middle, 1 = at the two ends):
+     the word is shown between the bars. The word is centred under the name, so the middle never
+     moves. (The layer is made by the script below, hence :global.) */
+  @property --role-p {
+    syntax: '<number>';
+    inherits: true;
+    initial-value: 0;
+  }
+  [data-role-text] {
+    display: inline-block;
+  }
+  [data-role-text] :global(.role-layer) {
+    position: relative;
+    display: inline-block;
+    white-space: nowrap;
+    --role-p: 0;
+  }
+  [data-role-text] :global(.role-text) {
+    display: inline-block;
+    /* Shown between the bars: the same amount is cut off on both sides (the vertical insets are
+       negative so that nothing is cut off above or below the letters). */
+    clip-path: inset(-0.3em calc((1 - var(--role-p)) * 50%) -0.3em calc((1 - var(--role-p)) * 50%));
+  }
+  [data-role-text] :global(.role-bar) {
+    position: absolute;
+    top: 0.1em;
+    bottom: 0.1em;
+    width: 2px;
+    border-radius: 1px;
+    background: currentColor;
+    opacity: 0;
+  }
+  /* The left bar goes from the middle to the left end, the right bar from the middle to the right
+     end (each 2px wide, so the middle is 50% - 1px). */
+  [data-role-text] :global(.role-bar-left) {
+    left: calc((1 - var(--role-p)) * (50% - 1px));
+  }
+  [data-role-text] :global(.role-bar-right) {
+    left: calc(50% - 1px + var(--role-p) * (50% - 1px));
+  }
+  [data-role-text] :global(.is-revealing) {
+    animation: role-sweep-in var(--role-ms, 550ms) cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  }
+  [data-role-text] :global(.is-hiding) {
+    animation: role-sweep-out var(--role-ms, 550ms) cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  }
+  [data-role-text] :global(.is-shown) {
+    --role-p: 1;
+  }
+  /* The bars are only there while they travel: they fade in at the start and out at the end. */
+  [data-role-text] :global(.is-revealing .role-bar),
+  [data-role-text] :global(.is-hiding .role-bar) {
+    animation: role-bar-fade var(--role-ms, 550ms) linear forwards;
+  }
+
+  @keyframes role-sweep-in {
+    from {
+      --role-p: 0;
+    }
+    to {
+      --role-p: 1;
+    }
+  }
+  @keyframes role-sweep-out {
+    from {
+      --role-p: 1;
+    }
+    to {
+      --role-p: 0;
+    }
+  }
+  @keyframes role-bar-fade {
+    0% {
+      opacity: 0;
+    }
+    12%,
+    88% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
     }
   }
 
@@ -225,57 +306,72 @@ const nameEm = displayName.length * NAME_EM_PER_CHARACTER;
 </script>
 
 <script>
-  // The role under the name is typed out, held, backspaced, and replaced by the next one, starting
-  // from a blank line. Reduced motion (even if switched on later) stops it; CSS then shows the short
-  // role again. The cursor only shows while this runs.
+  // The role under the name is revealed by two thin bars: they start together in the middle of the
+  // word and move apart to its two ends, wiping the word in between them; after a pause they travel
+  // back and meet in the middle, wiping the word out; then the next role is revealed. (The bar is plain CSS, see
+  // the styles; this script only switches the states.) The word is centred, so the middle of the
+  // line never moves. The state is also written to data-role-state and the role to
+  // data-current-role. Reduced motion (even if switched on later) stops it; CSS then shows the
+  // short role again.
   const status = document.querySelector<HTMLElement>('[data-status]');
   const text = status?.querySelector<HTMLElement>('[data-role-text]');
-  const cursor = status?.querySelector<HTMLElement>('[data-role-cursor]');
   const roles: string[] = JSON.parse(status?.dataset.roles ?? '[]');
 
-  if (status && text && cursor && roles.length) {
-    const TYPE_MS = 35; // per letter typed
-    const ERASE_MS = 25; // per letter backspaced (faster than typing)
-    const HOLD_MS = 1800; // a finished role stays this long
-    const GAP_MS = 200; // pause on the empty line between roles
+  if (status && text && roles.length) {
+    const SWEEP_MS = 250; // the bars travelling from the middle to the ends (or back)
+    const HOLD_MS = 1750; // a role stays this long once it is revealed
 
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     let timer = 0;
+    let index = -1;
+    let layer: HTMLElement | null = null;
 
-    const run = (current: string, next: number, typing: boolean) => {
-      text.textContent = current;
-      let delay: number;
-      if (typing) {
-        const target = roles[next];
-        if (current.length < target.length) {
-          current = target.slice(0, current.length + 1);
-          delay = TYPE_MS;
-        } else {
-          typing = false;
-          delay = HOLD_MS;
-        }
-      } else if (current.length > 0) {
-        current = current.slice(0, -1);
-        delay = ERASE_MS;
-      } else {
-        typing = true;
-        next = (next + 1) % roles.length;
-        delay = GAP_MS;
-      }
-      timer = window.setTimeout(run, delay, current, next, typing);
+    const setState = (state: 'revealing' | 'shown' | 'hiding') => {
+      status.dataset.roleState = state;
+      if (layer) layer.className = 'role-layer is-' + state;
+    };
+
+    // Reveal the next role: the bar crosses left to right, then the word stays.
+    const reveal = () => {
+      index = (index + 1) % roles.length;
+      layer = document.createElement('span');
+      const word = document.createElement('span');
+      word.className = 'role-text';
+      word.textContent = roles[index];
+      // Two thin bars, one going to each end of the word.
+      const left = document.createElement('span');
+      left.className = 'role-bar role-bar-left';
+      const right = document.createElement('span');
+      right.className = 'role-bar role-bar-right';
+      layer.append(word, left, right);
+      text.replaceChildren(layer);
+      status.dataset.currentRole = roles[index];
+      setState('revealing');
+      timer = window.setTimeout(() => {
+        setState('shown');
+        timer = window.setTimeout(hide, HOLD_MS);
+      }, SWEEP_MS);
+    };
+
+    // Hide the role: the bar crosses right to left, then the next role is revealed.
+    const hide = () => {
+      setState('hiding');
+      timer = window.setTimeout(reveal, SWEEP_MS);
     };
 
     const start = () => {
-      cursor.hidden = false;
       window.clearTimeout(timer);
-      // Begin on a blank line: the first role is typed after a short pause.
-      run('', roles.length - 1, false);
+      status.style.setProperty('--role-ms', SWEEP_MS + 'ms');
+      index = -1;
+      reveal(); // the first role is revealed at once
     };
 
     const stop = () => {
       window.clearTimeout(timer);
-      cursor.hidden = true;
       text.textContent = '';
+      layer = null;
+      delete status.dataset.currentRole;
+      delete status.dataset.roleState;
     };
 
     const sync = () => (reduceMotion.matches ? stop() : start());

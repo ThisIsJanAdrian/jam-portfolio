@@ -97,7 +97,7 @@ test.describe('typography', () => {
         display: px('#hero h1'),
         heading: px('#work h2'),
         subheading: px('.journey-title'),
-        lead: px('#contact p'),
+        lead: px('#projects h4'),
         body: px('body'),
         small: px('footer p'),
         label: px('.tech-tag'),
