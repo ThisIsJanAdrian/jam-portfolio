@@ -8,8 +8,7 @@ import sitemap from '@astrojs/sitemap';
 
 // https://astro.build/config
 export default defineConfig({
-  // TODO: replace with your real domain once deployed. The sitemap and canonical URLs depend on it.
-  site: 'https://example.com',
+  site: 'https://thisisjanadrian.github.io',
 
   integrations: [react(), mdx(), sitemap()],
 
